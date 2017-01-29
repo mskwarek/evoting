@@ -81,7 +81,6 @@ namespace ElectionAuthority
             //server for Clients
             this.serverClient = new Server(this);
 
-
             //server for Proxy
             this.serverProxy = new Server(this);
 
@@ -92,11 +91,15 @@ namespace ElectionAuthority
 
             this.auditor = new Auditor();
 
+            this.initKeyPair();
+        }
+
+        private void initKeyPair()
+        {
             //init key pair generator (for RSA bit-commitment)
             KeyGenerationParameters para = new KeyGenerationParameters(new SecureRandom(), 1024);
             RsaKeyPairGenerator keyGen = new RsaKeyPairGenerator();
             keyGen.Init(para);
-
 
             //generate key pair and get keys (for bit-commitment)
             AsymmetricCipherKeyPair keypair = keyGen.GenerateKeyPair();
@@ -120,13 +123,7 @@ namespace ElectionAuthority
 
         private void generatePermutation()
         {
-            //generating permutation and feeling List
-            permutationsList = new List<List<BigInteger>>();
-            for (int i = 0; i < this.numberOfVoters; i++)
-            {
-                this.permutationsList.Add(new List<BigInteger>(this.permutation.generatePermutation(candidateDefaultList.Count)));
-            }
-
+            this.generatePermutationList();
             connectSerialNumberAndPermutation();
             generateInversePermutation();
             generatePermutationTokens();
@@ -135,13 +132,25 @@ namespace ElectionAuthority
 
         }
 
+        private void generatePermutationList()
+        {
+            //generating permutation and feeling List
+            permutationsList = new List<List<BigInteger>>();
+            for (int i = 0; i < this.numberOfVoters; i++)
+            {
+                this.permutationsList.Add(new List<BigInteger>(this.permutation.generatePermutation(candidateDefaultList.Count)));
+            }
+        }
+
         private void generatePermutationTokens()
         {
             this.permutationTokensList = new List<BigInteger>();
             this.permutationExponentsList = new List<BigInteger>();
 
             for (int i = 0; i < this.numberOfVoters; i++)
-            { // we use the same method like to generate serial number, there is another random generator used inside this method
+            {
+                // we use the same method like to generate serial number, 
+                // there is another random generator used inside this method
                 List<AsymmetricCipherKeyPair> preToken = new List<AsymmetricCipherKeyPair>(SerialNumberGenerator.generatePreTokens(1, NetworkLib.Constants.NUMBER_OF_BITS_TOKEN));
 
                 RsaKeyParameters publicKey = (RsaKeyParameters)preToken[0].Public;
@@ -162,7 +171,6 @@ namespace ElectionAuthority
             }
             Utils.Logs.addLog("EA", NetworkLib.Constants.GENERATE_INVERSE_PERMUTATION, true, NetworkLib.Constants.LOG_INFO, true);
             connectSerialNumberAndInversePermutation();
-
         }
 
         private void connectSerialNumberAndInversePermutation()
@@ -175,7 +183,6 @@ namespace ElectionAuthority
             Utils.Logs.addLog("EA", NetworkLib.Constants.SL_CONNECTED_WITH_INVERSE_PERMUTATION, true, NetworkLib.Constants.LOG_INFO, true);
         }
 
-
         private void generateSerialNumber()
         {
             //Generating serial numbers (SL)
@@ -187,7 +194,6 @@ namespace ElectionAuthority
 
         private void generateTokens()
         {
-
             //preparing Big Integers for RSA blind signature (token have to fulfil requirments) 
             this.tokensList = new List<List<BigInteger>>();
             this.exponentsList = new List<List<BigInteger>>();
@@ -260,38 +266,21 @@ namespace ElectionAuthority
             for (int i = 0; i < this.serialNumberList.Count; i++)
             {
                 msg = msg + this.serialNumberList[i].ToString() + "=";
-                for (int j = 0; j < this.tokensList[i].Count; j++)
+                for (int j = 0; j < this.tokensList[i].Count - 1; j++)
                 {
-                    if (j == this.tokensList[i].Count - 1)
-                    {
-                        msg = msg + this.tokensList[i][j].ToString() + ":";
-                    }
-
-                    else
-                    {
-                        msg = msg + this.tokensList[i][j].ToString() + ",";
-                    }
-
+                    msg = msg + this.tokensList[i][j].ToString() + ",";
                 }
+                msg = msg + this.tokensList[i][this.tokensList[i].Count-1].ToString() + ":";
 
-                for (int j = 0; j < this.exponentsList[i].Count; j++)
+
+                for (int j = 0; j < this.exponentsList[i].Count - 1; j++)
                 {
-                    if (j == this.exponentsList[i].Count - 1)
-                    {
-                        msg += this.exponentsList[i][j].ToString();
-                    }
-                    else
-                    {
-                        msg = msg + this.exponentsList[i][j].ToString() + ",";
-                    }
+                    msg = msg + this.exponentsList[i][j].ToString() + ",";
                 }
-
-                if (i != this.serialNumberList.Count - 1)
-                {
-                    msg += ";";
-                }
-
+                msg += this.exponentsList[i][this.exponentsList[i].Count - 1].ToString();
             }
+            msg += ";";
+
             this.serverProxy.sendMessage(NetworkLib.Constants.PROXY, msg);
         }
 

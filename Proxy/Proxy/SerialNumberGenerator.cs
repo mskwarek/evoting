@@ -51,24 +51,16 @@ namespace Proxy
 
         public static List<BigInteger> generateListOfSerialNumber(int numberOfSerials, int numberOfBits)
         {
-
             List<BigInteger> listOfSerialNumber = new List<BigInteger>();
             RNGCryptoServiceProvider random = new RNGCryptoServiceProvider();
             byte[] data = new byte[numberOfBits];
             random.GetBytes(data);
 
             BigInteger startValue = new BigInteger(data);
+            listOfSerialNumber.Add(startValue.Add(new BigInteger("1")));
             for (int i = 0; i < numberOfSerials; i++)
             {
-                if (i == 0)
-                {
-                    listOfSerialNumber.Add(startValue.Add(new BigInteger("1")));
-                }
-                else 
-                {
-                    listOfSerialNumber.Add(listOfSerialNumber[i - 1].Add(new BigInteger("1")));
-                }
-
+                listOfSerialNumber.Add(listOfSerialNumber[i - 1].Add(new BigInteger("1")));
             }
 
             Utils.Extentions.Shuffle(listOfSerialNumber);
@@ -82,19 +74,13 @@ namespace Proxy
             int range = 4;
             for (int k = 0; k < numberOfVoters; k++)
             {
-                string str = null;
+                string str = "";
                 for (int i = 0; i < numberOfCandidates; i++)
                 {
-                    int random = rnd.Next(0, range);
-                    if (i != numberOfCandidates - 1) // we use this if to create string looks like "number:number:number:number". 
-                    {                  //It will be easy to split
-                        str = str + random.ToString() + ":";
-                    }
-                    else
-                    {
-                        str += random.ToString();
-                    }
+                    //we use this if to create string looks like "number:number:number:number".
+                    str = str + rnd.Next(0, range).ToString() + ":";
                 }
+                str += rnd.Next(0, range).ToString();
                 list.Add(str);
             }
             
