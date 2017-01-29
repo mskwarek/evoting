@@ -373,17 +373,12 @@ namespace ElectionAuthority
             this.ballots[name].signColumn();
             string signColumns = null;
 
-            for (int i = 0; i < this.ballots[name].SignedColumn.Length; i++)
+            for (int i = 0; i < this.ballots[name].SignedColumn.Length - 1; i++)
             {
-                if (i == this.ballots[name].SignedColumn.Length - 1)
-                {
-                    signColumns += this.ballots[name].SignedColumn[i].ToString();
-                }
-                else
-                {
-                    signColumns = signColumns + this.ballots[name].SignedColumn[i].ToString() + ",";
-                }
+                signColumns = signColumns + this.ballots[name].SignedColumn[i].ToString() + ",";
             }
+
+            signColumns += this.ballots[name].SignedColumn[this.ballots[name].SignedColumn.Length - 1].ToString();
 
             string msg = NetworkLib.Constants.SIGNED_PROXY_BALLOT + "&" + name + ";" + signColumns;
             this.serverProxy.sendMessage(NetworkLib.Constants.PROXY, msg);
@@ -509,7 +504,9 @@ namespace ElectionAuthority
                 for (int j = 0; j < vote.GetLength(1); j++)
                 {
                     if (vote[i, j] == "1")
+                    {
                         numberOfYes += 1;
+                    }
                 }
 
 
@@ -521,7 +518,6 @@ namespace ElectionAuthority
             }
 
             return voteCastOn;
-
         }
 
         private void initializeFinalResults()
