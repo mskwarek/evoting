@@ -198,10 +198,14 @@ namespace Proxy
             string[] position = this.yesNoPos.Split(':');
             this.ballotMatrix = new int[this.vote.GetLength(0), this.vote.GetLength(1)];
             for (int i = 0; i < NetworkLib.Constants.NUM_OF_CANDIDATES; i++)
-            {
+            {    
+                //markNonClickedNoButton(vote[i, j], position[i], ballotMatrix);
                 for (int j = 0; j < NetworkLib.Constants.BALLOT_SIZE; j++)
                 {
-                    markNonClickedNoButton(vote[i, j], position[i], ballotMatrix[i, j]);
+                    if (vote[i, j] != 1 && j != Convert.ToInt32(position[i]))
+                    {
+                        ballotMatrix[i, j] = 1;
+                    }
                 }
             }
 
@@ -209,13 +213,10 @@ namespace Proxy
             this.rewriteColumsToArray();
         }
 
-        private void markNonClickedNoButton(int vote, string position, int ballotMatrix)
+        private void markNonClickedNoButton(int vote, string position, int[,] ballotMatrix)
         {
-            //mark every non-clicked "No" button
-            if (vote != 1 && j != Convert.ToInt32(position))
-            {
-                ballotMatrix = 1;
-            }
+        //mark every non-clicked "No" button
+
         }
 
         private void rewriteColumsToArray()

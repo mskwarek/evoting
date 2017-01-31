@@ -31,8 +31,6 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.startElectionAuthorityButton = new System.Windows.Forms.Button();
-            this.logsListView = new System.Windows.Forms.ListView();
-            this.logColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.configButton = new System.Windows.Forms.Button();
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.sendSLTokensAndTokensButton = new System.Windows.Forms.Button();
@@ -43,7 +41,7 @@
             // startElectionAuthorityButton
             // 
             this.startElectionAuthorityButton.Enabled = false;
-            this.startElectionAuthorityButton.Location = new System.Drawing.Point(12, 211);
+            this.startElectionAuthorityButton.Location = new System.Drawing.Point(15, 53);
             this.startElectionAuthorityButton.Name = "startElectionAuthorityButton";
             this.startElectionAuthorityButton.Size = new System.Drawing.Size(123, 35);
             this.startElectionAuthorityButton.TabIndex = 0;
@@ -51,26 +49,9 @@
             this.startElectionAuthorityButton.UseVisualStyleBackColor = true;
             this.startElectionAuthorityButton.Click += new System.EventHandler(this.startElectionAuthorityButton_Click);
             // 
-            // logsListView
-            // 
-            this.logsListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.logColumn});
-            this.logsListView.FullRowSelect = true;
-            this.logsListView.Location = new System.Drawing.Point(13, 12);
-            this.logsListView.Name = "logsListView";
-            this.logsListView.Size = new System.Drawing.Size(740, 143);
-            this.logsListView.TabIndex = 1;
-            this.logsListView.UseCompatibleStateImageBehavior = false;
-            this.logsListView.View = System.Windows.Forms.View.Details;
-            // 
-            // logColumn
-            // 
-            this.logColumn.Text = "Logs";
-            this.logColumn.Width = 734;
-            // 
             // configButton
             // 
-            this.configButton.Location = new System.Drawing.Point(13, 170);
+            this.configButton.Location = new System.Drawing.Point(16, 12);
             this.configButton.Name = "configButton";
             this.configButton.Size = new System.Drawing.Size(122, 35);
             this.configButton.TabIndex = 2;
@@ -86,7 +67,7 @@
             // sendSLTokensAndTokensButton
             // 
             this.sendSLTokensAndTokensButton.Enabled = false;
-            this.sendSLTokensAndTokensButton.Location = new System.Drawing.Point(13, 252);
+            this.sendSLTokensAndTokensButton.Location = new System.Drawing.Point(16, 94);
             this.sendSLTokensAndTokensButton.Name = "sendSLTokensAndTokensButton";
             this.sendSLTokensAndTokensButton.Size = new System.Drawing.Size(122, 35);
             this.sendSLTokensAndTokensButton.TabIndex = 3;
@@ -97,7 +78,7 @@
             // finishVotingButton
             // 
             this.finishVotingButton.Enabled = false;
-            this.finishVotingButton.Location = new System.Drawing.Point(13, 294);
+            this.finishVotingButton.Location = new System.Drawing.Point(16, 136);
             this.finishVotingButton.Name = "finishVotingButton";
             this.finishVotingButton.Size = new System.Drawing.Size(122, 35);
             this.finishVotingButton.TabIndex = 4;
@@ -108,7 +89,7 @@
             // countVotesButton
             // 
             this.countVotesButton.Enabled = false;
-            this.countVotesButton.Location = new System.Drawing.Point(13, 336);
+            this.countVotesButton.Location = new System.Drawing.Point(16, 178);
             this.countVotesButton.Name = "countVotesButton";
             this.countVotesButton.Size = new System.Drawing.Size(122, 35);
             this.countVotesButton.TabIndex = 5;
@@ -120,12 +101,11 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(765, 409);
+            this.ClientSize = new System.Drawing.Size(157, 226);
             this.Controls.Add(this.countVotesButton);
             this.Controls.Add(this.finishVotingButton);
             this.Controls.Add(this.sendSLTokensAndTokensButton);
             this.Controls.Add(this.configButton);
-            this.Controls.Add(this.logsListView);
             this.Controls.Add(this.startElectionAuthorityButton);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
@@ -139,10 +119,8 @@
         #endregion
 
         private System.Windows.Forms.Button startElectionAuthorityButton;
-        private System.Windows.Forms.ListView logsListView;
         private System.Windows.Forms.Button configButton;
         private System.Windows.Forms.OpenFileDialog openFileDialog;
-        private System.Windows.Forms.ColumnHeader logColumn;
         private System.Windows.Forms.Button sendSLTokensAndTokensButton;
         private System.Windows.Forms.Button finishVotingButton;
         private System.Windows.Forms.Button countVotesButton;

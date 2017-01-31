@@ -69,7 +69,6 @@ namespace Proxy
                     Utils.Logs.addLog("Client", NetworkLib.Constants.SL_RECEIVED, true, NetworkLib.Constants.LOG_INFO, true);
                     break;
                 case NetworkLib.Constants.CONNECTED:
-                    this.proxy.disableConnectElectionAuthorityButton();
                     Utils.Logs.addLog("Client", NetworkLib.Constants.PROXY_CONNECTED_TO_EA, true, NetworkLib.Constants.LOG_INFO, true);
                     break;
                 case NetworkLib.Constants.SIGNED_PROXY_BALLOT:

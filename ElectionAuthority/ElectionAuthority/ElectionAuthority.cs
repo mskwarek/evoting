@@ -15,7 +15,6 @@ namespace ElectionAuthority
     public class ElectionAuthority
     {
         ASCIIEncoding encoder;
-        private Form1 form;
 
         private Server serverClient; 
         public Server ServerClient
@@ -73,11 +72,12 @@ namespace ElectionAuthority
         private List<BigInteger> permutationExponentsList;
 
 
-        public ElectionAuthority(Configuration configuration, Form1 form)
+        public ElectionAuthority(string filename)
         {
+            Configuration configuration = new Configuration();
+            configuration.loadConfiguration(filename);
             this.encoder = new ASCIIEncoding();
             this.configuration = configuration;
-            this.form = form;
             //server for Clients
             this.serverClient = new Server(this);
 
@@ -92,6 +92,9 @@ namespace ElectionAuthority
             this.auditor = new Auditor();
 
             this.initKeyPair();
+
+            this.loadCandidateList("C:\\Users\\mskwarek\\Documents\\Visual Studio 2015\\Projects\\PKRY\\Config\\CandidateList.xml");
+
         }
 
         private void initKeyPair()
@@ -284,15 +287,6 @@ namespace ElectionAuthority
             this.serverProxy.sendMessage(NetworkLib.Constants.PROXY, msg);
         }
 
-        public void disableSendSLTokensAndTokensButton()
-        {
-            this.form.Invoke(new MethodInvoker(delegate()
-                {
-                    this.form.disableSendSLTokensAndTokensButton();
-                }));
-
-        }
-
         public void getCandidateListPermuated(string name, BigInteger SL)
         {
             List<BigInteger> permutation = new List<BigInteger>();
@@ -457,7 +451,7 @@ namespace ElectionAuthority
             this.announceResultsOfElection();
         }
 
-        private void announceResultsOfElection()
+        private string announceResultsOfElection()
         {
 
             int maxValue = this.finalResults.Max();
@@ -475,21 +469,7 @@ namespace ElectionAuthority
                 }
             }
 
-            if (winningCandidates == 1)
-            {
-                this.form.Invoke(new MethodInvoker(delegate()
-                    {
-                        MessageBox.Show(resultOfVoting + "Winner of the election is: " + winners);
-                    }));
-
-            }
-            else
-            {
-                this.form.Invoke(new MethodInvoker(delegate()
-                {
-                    MessageBox.Show(resultOfVoting + "There is no one winner. Candidates on first place ex aequo: " + winners);
-                }));
-            }
+            return winners;
         }
 
         private int checkVote(int voterNumber)

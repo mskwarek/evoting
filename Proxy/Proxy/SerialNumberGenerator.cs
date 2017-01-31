@@ -58,7 +58,7 @@ namespace Proxy
 
             BigInteger startValue = new BigInteger(data);
             listOfSerialNumber.Add(startValue.Add(new BigInteger("1")));
-            for (int i = 0; i < numberOfSerials; i++)
+            for (int i = 1; i < numberOfSerials; i++)
             {
                 listOfSerialNumber.Add(listOfSerialNumber[i - 1].Add(new BigInteger("1")));
             }

@@ -67,6 +67,7 @@ namespace ElectionAuthority
                     clientSockets.Add(clientSocket, NetworkLib.Constants.UNKNOWN);
                     Thread clientThread = new Thread(new ParameterizedThreadStart(displayMessageReceived));
                     clientThread.Start(clientSocket);
+                    Utils.Logs.addLog("EA", "NEW CLIENT CONNECTED", true, NetworkLib.Constants.LOG_INFO, true);
                 }
                 catch
                 {

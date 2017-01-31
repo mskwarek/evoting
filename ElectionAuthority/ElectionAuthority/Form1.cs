@@ -12,14 +12,13 @@ namespace ElectionAuthority
 {
     public partial class Form1 : Form
     {
-        private Configuration configuration;
         private ElectionAuthority electionAuthority;
         
         public Form1()
         {
             InitializeComponent();
-            setColumnWidth();            
-            configuration = new Configuration();   
+            this.loadConfig("C:\\Users\\mskwarek\\Documents\\Visual Studio 2015\\Projects\\PKRY\\Config\\ElectionAuthority.xml");
+            this.startEaService();
         }
 
         private void startElectionAuthorityButton_Click(object sender, EventArgs e)
@@ -48,9 +47,7 @@ namespace ElectionAuthority
 
         public void loadConfig(string filename)
         {
-            configuration.loadConfiguration(filename);
-            electionAuthority = new ElectionAuthority(this.configuration, this);
-            this.electionAuthority.loadCandidateList("C:\\Users\\mskwarek\\Documents\\Visual Studio 2015\\Projects\\PKRY\\Config\\CandidateList.xml");
+            electionAuthority = new ElectionAuthority(filename);
         }
         private void enableButtonAfterConfiguration()
         {
@@ -71,11 +68,6 @@ namespace ElectionAuthority
                     this.electionAuthority.ServerProxy.stopServer();
                 }
             }           
-        }
-
-        private void setColumnWidth()
-        {
-            this.logColumn.Width = this.logsListView.Width - 5;
         }
 
         private void button1_Click(object sender, EventArgs e)

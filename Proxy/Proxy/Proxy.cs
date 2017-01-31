@@ -5,13 +5,13 @@ using System.Text;
 using Org.BouncyCastle.Math;
 using System.Net.Sockets;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace Proxy
 {
     class Proxy
     {
         private Configuration configuration;
-        private Form1 form;
         private Server server;
         public Server Server
         {
@@ -37,10 +37,11 @@ namespace Proxy
         private static int numOfSentSLandSR = 0;
         private List<string> yesNoPosition; 
 
-        public Proxy(Configuration conf, Form1 form)
+        public Proxy(string configPath)
         {
+            Configuration conf = new Configuration();
+            conf.loadConfiguration(configPath);
             this.configuration = conf;
-            this.form = form;
             this.server = new Server(this);
             this.client = new Client(this);
 
@@ -51,12 +52,45 @@ namespace Proxy
             this.proxyBallots = new Dictionary<string, ProxyBallot>();
         }
 
+        public void connect()
+        {
+            Utils.Logs.addLog("Proxy", "EA Connecting...", true, NetworkLib.Constants.LOG_INFO);
+            bool end = false;
+            while (!end)
+            {
+                try
+                {
+                    this.Client.connect(configuration.ElectionAuthorityIP, configuration.ElectionAuthorityPort);
+                    end = true;
+                }
+                catch
+                {
+                    Utils.Logs.addLog("Proxy", "waiting...", true, NetworkLib.Constants.LOG_INFO, true);
+                    Thread.Sleep(1000);
+                }
+            }
+            Utils.Logs.addLog("Proxy", "Connected", true, NetworkLib.Constants.LOG_INFO, true);
+            Thread.Sleep(5000);
+            requestSL();
+        }
+
+        private void requestSL()
+        {
+            string msg = "REQUEST_SL&";
+
+            this.client.sendMessage(msg);
+        }
+
+        public void startServer()
+        {
+            this.Server.startServer(configuration.ProxyPort);
+        }
+
         public void generateSR()
         {
             this.numberOfVoters = this.configuration.NumOfVoters;
             this.SRList = SerialNumberGenerator.generateListOfSerialNumber(this.numberOfVoters, NetworkLib.Constants.NUMBER_OF_BITS_SR);
             Utils.Logs.addLog("Proxy", NetworkLib.Constants.SR_GEN_SUCCESSFULLY, true, NetworkLib.Constants.LOG_INFO);
-
         }
 
         public void generateYesNoPosition()
@@ -110,14 +144,6 @@ namespace Proxy
             }
             
 
-        }
-
-        public void disableConnectElectionAuthorityButton()
-        {
-            this.form.Invoke(new MethodInvoker(delegate()
-                {
-                    this.form.disableConnectElectionAuthorityButton();
-                }));
         }
 
         private void saveYesNoPositionToFile()

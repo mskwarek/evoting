@@ -11,13 +11,14 @@ namespace Proxy
 {
     public partial class Form1 : Form
     {
-        private Configuration configuration;
         private Proxy proxy;
 
         public Form1()
         {
             InitializeComponent();
-            this.configuration = new Configuration();
+            loadConfig("C:\\Users\\mskwarek\\Documents\\Visual Studio 2015\\Projects\\PKRY\\Config\\Proxy.xml");
+            startProxyService();
+            connectToEA();
         }
 
         private void configButton_Click(object sender, EventArgs e)
@@ -33,8 +34,7 @@ namespace Proxy
 
         public void loadConfig(string configPath)
         {
-            configuration.loadConfiguration(configPath);
-            this.proxy = new Proxy(this.configuration, this);
+            this.proxy = new Proxy(configPath);
         }
 
         private void connectElectionAuthorityButton_Click(object sender, EventArgs e)
@@ -67,7 +67,7 @@ namespace Proxy
         public void startProxyService()
         {
 
-            this.proxy.Server.startServer(configuration.ProxyPort);
+            this.proxy.startServer();
 
             if (proxy.Server.isStarted())
             {
@@ -87,7 +87,7 @@ namespace Proxy
 
         public void connectToEA()
         {
-            this.proxy.Client.connect(configuration.ElectionAuthorityIP, configuration.ElectionAuthorityPort);
+            this.proxy.connect();
         }
 
         private void enableButtonsAfterConfiguration()

@@ -29,34 +29,15 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            this.logsListView = new System.Windows.Forms.ListView();
-            this.logColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.configButton = new System.Windows.Forms.Button();
             this.startProxyButton = new System.Windows.Forms.Button();
             this.connectElectionAuthorityButton = new System.Windows.Forms.Button();
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.SuspendLayout();
             // 
-            // logsListView
-            // 
-            this.logsListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.logColumn});
-            this.logsListView.FullRowSelect = true;
-            this.logsListView.Location = new System.Drawing.Point(13, 13);
-            this.logsListView.Name = "logsListView";
-            this.logsListView.Size = new System.Drawing.Size(380, 220);
-            this.logsListView.TabIndex = 0;
-            this.logsListView.UseCompatibleStateImageBehavior = false;
-            this.logsListView.View = System.Windows.Forms.View.Details;
-            // 
-            // logColumn
-            // 
-            this.logColumn.Text = "Logs";
-            this.logColumn.Width = 352;
-            // 
             // configButton
             // 
-            this.configButton.Location = new System.Drawing.Point(13, 253);
+            this.configButton.Location = new System.Drawing.Point(19, 12);
             this.configButton.Name = "configButton";
             this.configButton.Size = new System.Drawing.Size(107, 35);
             this.configButton.TabIndex = 1;
@@ -67,7 +48,7 @@
             // startProxyButton
             // 
             this.startProxyButton.Enabled = false;
-            this.startProxyButton.Location = new System.Drawing.Point(12, 294);
+            this.startProxyButton.Location = new System.Drawing.Point(18, 53);
             this.startProxyButton.Name = "startProxyButton";
             this.startProxyButton.Size = new System.Drawing.Size(108, 35);
             this.startProxyButton.TabIndex = 2;
@@ -78,7 +59,7 @@
             // connectElectionAuthorityButton
             // 
             this.connectElectionAuthorityButton.Enabled = false;
-            this.connectElectionAuthorityButton.Location = new System.Drawing.Point(13, 336);
+            this.connectElectionAuthorityButton.Location = new System.Drawing.Point(19, 95);
             this.connectElectionAuthorityButton.Name = "connectElectionAuthorityButton";
             this.connectElectionAuthorityButton.Size = new System.Drawing.Size(107, 35);
             this.connectElectionAuthorityButton.TabIndex = 3;
@@ -95,11 +76,10 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(603, 447);
+            this.ClientSize = new System.Drawing.Size(144, 144);
             this.Controls.Add(this.connectElectionAuthorityButton);
             this.Controls.Add(this.startProxyButton);
             this.Controls.Add(this.configButton);
-            this.Controls.Add(this.logsListView);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
             this.Text = "Proxy";
@@ -109,9 +89,6 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.ListView logsListView;
-        private System.Windows.Forms.ColumnHeader logColumn;
         private System.Windows.Forms.Button configButton;
         private System.Windows.Forms.Button startProxyButton;
         private System.Windows.Forms.Button connectElectionAuthorityButton;
