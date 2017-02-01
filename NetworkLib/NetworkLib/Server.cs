@@ -68,8 +68,6 @@ namespace NetworkLib
 
                 this.clientSocket.Add(clientSocket);
                 OnNewClientRequest(this, args);
-
-
             }
         }
 

@@ -22,7 +22,7 @@ namespace Utils
             }
             ListViewItem item = new ListViewItem();
             item.ForeColor = int_get_log_color(flag);
-            item.Text = int_get_log_message(time, log);
+            item.Text = int_get_log_message(time, log_subject + " " + log);
 
             int_add_log_to_ui(anotherThread, item);
             int_write_log_to_file(int_get_log_message(time, log));
