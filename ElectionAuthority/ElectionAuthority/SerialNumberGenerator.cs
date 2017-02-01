@@ -21,17 +21,10 @@ namespace ElectionAuthority
             random.GetBytes(data);
 
             BigInteger startValue = new BigInteger(data);
-            for (int i = 0; i < numberOfSerials; i++)
+            listOfSerialNumber.Add(startValue.Add(new BigInteger(1.ToString())).Abs());
+            for (int i = 1; i < numberOfSerials; i++)
             {
-                if (i == 0)
-                {
-                    listOfSerialNumber.Add(startValue.Add(new BigInteger(1.ToString())).Abs());
-                }
-                else
-                {
-                    listOfSerialNumber.Add((listOfSerialNumber[i - 1].Add(new BigInteger(1.ToString()))).Abs());
-                }
-
+                 listOfSerialNumber.Add((listOfSerialNumber[i - 1].Add(new BigInteger(1.ToString()))).Abs());   
             }
 
             Utils.Extentions.Shuffle(listOfSerialNumber);

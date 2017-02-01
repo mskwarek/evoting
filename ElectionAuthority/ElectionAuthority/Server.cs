@@ -40,9 +40,7 @@ namespace ElectionAuthority
                 updateClientName(myArgs.ID, myArgs.Message);
                 sendMessage(clientSockets[myArgs.ID], NetworkLib.Constants.CONNECTED);
             }
-
-            this.parser.parseMessage(myArgs.Message);
-            
+            this.parser.parseMessage(myArgs.Message);      
         }
 
         private void newClientConnected(object myObject, NetworkLib.ClientArgs myArgs)
@@ -57,7 +55,6 @@ namespace ElectionAuthority
 
         public void sendMessage(string name, string msg)
         {
-
             TcpClient client = null;
             List<TcpClient> clientsList = clientSockets.Keys.ToList();
             for (int i = 0; i < clientsList.Count; i++)
