@@ -30,8 +30,6 @@ namespace ElectionAuthority
 
         private CandidateList candidateList;
 
-        private List<String> candidateDefaultList;
-
         private Configuration configuration;
 
         private Permutation permutation;
@@ -59,7 +57,7 @@ namespace ElectionAuthority
 
         private int numberOfVoters;
 
-        private int[] finalResults;
+        private List<int> finalResults;
 
         private Auditor auditor;                            
 
@@ -94,7 +92,7 @@ namespace ElectionAuthority
             this.initKeyPair();
 
             this.loadCandidateList("C:\\Users\\mskwarek\\Documents\\Visual Studio 2015\\Projects\\PKRY\\Config\\CandidateList.xml");
-
+            finalResults = new List<int>(this.candidateList.getNumberOfCandidates());
         }
 
         private void initKeyPair()
@@ -118,10 +116,8 @@ namespace ElectionAuthority
 
         public void loadCandidateList(string pathToElectionAuthorityConfig)
         {
-            candidateDefaultList = new List<String>();
             candidateList = new CandidateList();
-            
-            candidateDefaultList = candidateList.loadCanidateList(pathToElectionAuthorityConfig);
+            candidateList.loadCanidateList(pathToElectionAuthorityConfig);
         }
 
         private void generatePermutation()
@@ -130,9 +126,8 @@ namespace ElectionAuthority
             connectSerialNumberAndPermutation();
             generateInversePermutation();
             generatePermutationTokens();
-            blindPermutation(permutationsList);              //Send commited permutation to Auditor
+            this.auditor.blindPermutation(permutationsList, this.pubKey);              //Send commited permutation to Auditor
             Utils.Logs.addLog("EA", NetworkLib.Constants.PERMUTATION_GEN_SUCCESSFULLY, true, NetworkLib.Constants.LOG_INFO);
-
         }
 
         private void generatePermutationList()
@@ -141,7 +136,7 @@ namespace ElectionAuthority
             permutationsList = new List<List<BigInteger>>();
             for (int i = 0; i < this.numberOfVoters; i++)
             {
-                this.permutationsList.Add(new List<BigInteger>(this.permutation.generatePermutation(candidateDefaultList.Count)));
+                this.permutationsList.Add(new List<BigInteger>(this.permutation.generatePermutation(this.candidateList.getNumberOfCandidates())));
             }
         }
 
@@ -161,7 +156,7 @@ namespace ElectionAuthority
                 permutationTokensList.Add(publicKey.Modulus);
                 permutationExponentsList.Add(publicKey.Exponent);
             }
-            Console.WriteLine("Permutation tokens generated");
+            Utils.Logs.addLog("EA", "Permutation tokens generated", true, NetworkLib.Constants.LOG_INFO, true);
         }
 
         private void generateInversePermutation()
@@ -289,27 +284,8 @@ namespace ElectionAuthority
 
         public void getCandidateListPermuated(string name, BigInteger SL)
         {
-            List<BigInteger> permutation = new List<BigInteger>();
-            permutation = this.dictionarySLPermuation[SL];
-
-            List<String> candidateList = new List<string>();
-
-            for (int i = 0; i < this.candidateDefaultList.Count; i++)
-            {
-                int index = permutation[i].IntValue;
-                candidateList.Add(candidateDefaultList[index - 1]);
-            }
-
-            string candidateListString = NetworkLib.Constants.CANDIDATE_LIST_RESPONSE + "&";
-
-            for (int i = 0; i < candidateList.Count - 1; i++)
-            {
-                candidateListString += candidateList[i] + ";";
-            }
-            candidateListString += candidateList[candidateList.Count - 1];
-
+            string candidateListString = this.candidateList.getCandidateListPermuated(name, this.dictionarySLPermuation[SL]);
             this.serverClient.sendMessage(name, candidateListString);
-
         }
 
         public void saveBlindBallotMatrix(string message)
@@ -388,7 +364,7 @@ namespace ElectionAuthority
             string name = words[0];
             string[] strUnblinedColumns = words[1].Split(',');
 
-            string[,] unblindedBallot = new string[this.candidateDefaultList.Count, NetworkLib.Constants.BALLOT_SIZE];
+            string[,] unblindedBallot = new string[this.candidateList.getNumberOfCandidates(), NetworkLib.Constants.BALLOT_SIZE];
             for (int i = 0; i < strUnblinedColumns.Length; i++)
             {
                 for (int j = 0; j < strUnblinedColumns[i].Length; j++)
@@ -397,7 +373,7 @@ namespace ElectionAuthority
                 }
             }
 
-            string[,] unblindedUnpermuatedBallot = new string[this.candidateDefaultList.Count, NetworkLib.Constants.BALLOT_SIZE];
+            string[,] unblindedUnpermuatedBallot = new string[this.candidateList.getNumberOfCandidates(), NetworkLib.Constants.BALLOT_SIZE];
             BigInteger[] inversePermutation = this.ballots[name].InversePermutation.ToArray();
 
             for (int i = 0; i < unblindedUnpermuatedBallot.GetLength(0); i++)
@@ -427,17 +403,13 @@ namespace ElectionAuthority
             }
 
             Utils.Logs.addLog("EA",NetworkLib.Constants.VOTIGN_STOPPED, true, NetworkLib.Constants.LOG_INFO, true);
-
         }
 
         public void countVotes()
         {
             /*ublindPermutation - EA send to voter unblinded permutation (and then private key) so Audiotr
                 can check RSA formula*/
-            unblindPermutation(permutationsList);
-
-            this.finalResults = new int[this.candidateDefaultList.Count];
-            initializeFinalResults();
+            this.auditor.unblindPermutation(permutationsList, this.pubKey, this.privKey);
 
             for (int i = 0; i < this.ballots.Count; i++)
             {
@@ -459,13 +431,13 @@ namespace ElectionAuthority
             int winningCandidates = 0;
             string winners = null;
             string resultOfVoting = null;
-            for (int i = 0; i < this.finalResults.Length; i++)
+            for (int i = 0; i < this.finalResults.Count; i++)
             {
-                resultOfVoting = resultOfVoting + this.candidateDefaultList[i] + " received: " + this.finalResults[i] + " votes" +Environment.NewLine;
+                resultOfVoting = resultOfVoting + this.candidateList.getCandidateByIndex(i) + " received: " + this.finalResults[i] + " votes" +Environment.NewLine;
                 if (this.finalResults[i] == maxValue)
                 {
                     winningCandidates += 1; // a few candidates has the same number of votes.
-                    winners = winners + this.candidateDefaultList[i] + " ";
+                    winners = winners + this.candidateList.getCandidateByIndex(i) + " ";
                 }
             }
 
@@ -498,86 +470,6 @@ namespace ElectionAuthority
             }
 
             return voteCastOn;
-        }
-
-        private void initializeFinalResults()
-        {
-            for (int i = 0; i < this.finalResults.Length; i++)
-            {
-                this.finalResults[i] = 0;
-            }
-        }
-
-        //Auditor's functions
-
-        public void blindPermutation(List<List<BigInteger>> permutationList)
-        {
-            int size = permutationList.Count;
-            BigInteger[] toSend = new BigInteger[size];
-
-            //preparing List of permutation to send
-            int k = 0;
-            string[] strPermuationList = new string[permutationList.Count];
-            foreach (List<BigInteger> list in permutationList)
-            {
-                string str = "";
-                foreach (BigInteger big in list)
-                {
-                    str += big.ToString();
-                }
-                strPermuationList[k] = str;
-                k++;
-            }
-
-            //RSA formula (bit commitment)
-            int i = 0;
-            foreach (string str in strPermuationList)
-            {
-                BigInteger toBlind = new BigInteger(str);
-                BigInteger e = pubKey.Exponent;
-                BigInteger n = pubKey.Modulus;
-                BigInteger b = toBlind.ModPow(e, n);
-                toSend[i] = b;
-                i++;
-            }
-            this.auditor.CommitedPermatation = toSend;
-        }
-
-        public void unblindPermutation(List<List<BigInteger>> permutationList)
-        {
-            int size = permutationList.Count;
-            List<BigInteger> toSend = new List<BigInteger>();
-
-            int k = 0;
-            string[] strPermuationList = new string[permutationList.Count];
-
-            foreach (List<BigInteger> list in permutationList)
-            {
-                string str = null;
-                foreach (BigInteger big in list)
-                {
-                    str += big.ToString();
-                }
-                strPermuationList[k] = str;
-                k++;
-            }
-
-            foreach (string str in strPermuationList)
-            {
-                BigInteger b = new BigInteger(str);
-                toSend.Add(b);
-            }
-
-
-            //checking permutations RSA (auditor checks all of the permutations)
-            if (this.auditor.checkPermutation(this.privKey, this.pubKey, toSend))
-            {
-                Utils.Logs.addLog("EA", NetworkLib.Constants.BIT_COMMITMENT_OK, true, NetworkLib.Constants.LOG_INFO, true);
-            }
-            else
-            {
-                Utils.Logs.addLog("EA", NetworkLib.Constants.BIT_COMMITMENT_FAIL, true, NetworkLib.Constants.LOG_ERROR, true);
-            }
         }
     }
 }
