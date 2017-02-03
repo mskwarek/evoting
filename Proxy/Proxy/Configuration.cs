@@ -8,6 +8,17 @@ namespace Proxy
 {
     class Configuration
     {
+        private XmlDocument xml;
+
+        string id = "ID";
+        string port = "Port";
+        string ea_ip = "EA_IP";
+        string ea_port = "EA_Port";
+        string voters_cnt = "VotersCnt";
+        string candidates_cnt = "CandidatesCnt";
+
+        Dictionary<string, string> attributes;
+
         private string proxyID;
         public string ProxyID
         {
@@ -46,60 +57,45 @@ namespace Proxy
 
         public Configuration()
         {
+            this.xml = new XmlDocument();
+            this.attributes = new Dictionary<string, string>{
+                    { this.id, NetworkLib.Constants.ID },
+                    { this.port, NetworkLib.Constants.PROXY_PORT},
+                    { this.ea_ip, NetworkLib.Constants.ELECTION_AUTHORITY_IP },
+                    { this.ea_port, NetworkLib.Constants.ELECTION_AUTHORITY_PORT },
+                    { this.voters_cnt, NetworkLib.Constants.NUMBER_OF_VOTERS },
+                    { this.candidates_cnt, NetworkLib.Constants.NUMBER_OF_CANDIDATES }
+             };
         }
 
-        private List<String> readConfig(XmlDocument xml)
+        private String readConfig(XmlDocument xml, string attribute)
         {
-
-            List<String> list = new List<String>();
-
             foreach (XmlNode xnode in xml.SelectNodes("//Proxy[@ID]"))
             {
-                string proxyId = xnode.Attributes[NetworkLib.Constants.ID].Value;
-                list.Add(proxyId);
-                string proxyPort = xnode.Attributes[NetworkLib.Constants.PROXY_PORT].Value;
-                list.Add(proxyPort);
-                string electionAuthorityIP = xnode.Attributes[NetworkLib.Constants.ELECTION_AUTHORITY_IP].Value;
-                list.Add(electionAuthorityIP);
-                string electionAuthorityPort = xnode.Attributes[NetworkLib.Constants.ELECTION_AUTHORITY_PORT].Value;
-                list.Add(electionAuthorityPort);
-                string numberOfVoters = xnode.Attributes[NetworkLib.Constants.NUMBER_OF_VOTERS].Value;
-                list.Add(numberOfVoters);
-                string numberOfCandidates = xnode.Attributes[NetworkLib.Constants.NUMBER_OF_CANDIDATES].Value;
-                list.Add(numberOfCandidates);
+                return xnode.Attributes[attribute].Value;
             }
-
-            return list;
-
+            return "";
         }
 
-        public bool loadConfiguration(string path)
+        private string getAttribute()
         {
-            XmlDocument xml = new XmlDocument();
-            try
-            {
-                xml.Load(path);
-                List<String> conf = new List<String>();
-                conf = readConfig(xml);
+            
+            return "";
+        }
 
-                this.proxyID = conf[0];
-                this.proxyPort = conf[1];
-                this.electionAuthorityIP = conf[2];
-                this.electionAuthorityPort = conf[3];
-                this.numOfVoters = Convert.ToInt32(conf[4]);
-                this.numOfCandidates = Convert.ToInt32(conf[5]);
+        public void loadConfiguration(string path)
+        {
+            xml.Load(path);
 
-                string[] filePath = path.Split('\\');
-                Utils.Logs.addLog("Proxy", NetworkLib.Constants.CONFIGURATION_LOADED_FROM + filePath[filePath.Length - 1], true, NetworkLib.Constants.LOG_INFO);
-                return true;
-            }
-            catch (Exception exp)
-            {
-                Console.WriteLine(exp);
-                return false;
-            }
+            this.proxyID = readConfig(xml, attributes[id]);
+            this.proxyPort = readConfig(xml, attributes[port]);
+            this.electionAuthorityIP = readConfig(xml, attributes[this.ea_ip]);
+            this.electionAuthorityPort = readConfig(xml, attributes[ea_port]);
+            this.numOfVoters = Convert.ToInt32(readConfig(xml, attributes[this.voters_cnt]));
+            this.numOfCandidates = Convert.ToInt32(readConfig(xml, attributes[this.candidates_cnt]));
 
-
+            string[] filePath = path.Split('\\');
+            Utils.Logs.addLog("Proxy", NetworkLib.Constants.CONFIGURATION_LOADED_FROM + filePath[filePath.Length - 1], true, NetworkLib.Constants.LOG_INFO);
         }
     }
 }

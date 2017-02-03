@@ -39,17 +39,27 @@ namespace Proxy
 
         public Proxy(string configPath)
         {
-            Configuration conf = new Configuration();
-            conf.loadConfiguration(configPath);
-            this.configuration = conf;
+            this.configuration = new Configuration();
             this.server = new Server(this);
             this.client = new Client(this);
-
-
             this.serialNumberTokens = new Dictionary<BigInteger, List<List<BigInteger>>>();
             this.SRList = new List<BigInteger>();
             this.serialNumberAndSR = new Dictionary<BigInteger, BigInteger>();
             this.proxyBallots = new Dictionary<string, ProxyBallot>();
+
+            this.tryToLoadConfig(configPath);
+        }
+
+        private void tryToLoadConfig(string configPath)
+        {
+            try
+            {
+                this.configuration.loadConfiguration(configPath);
+            }
+            catch (Exception e)
+            {
+                Utils.Logs.addLog("PROXY", "UNABLE TO LOAD CONFIGURATION", true, NetworkLib.Constants.LOG_ERROR, true);
+            }
         }
 
         public void connect()
@@ -110,7 +120,6 @@ namespace Proxy
                 this.serialNumberAndSR.Add(serialNumberTokens.ElementAt(i).Key, SRList[i]);
             }
             Utils.Logs.addLog("Proxy", NetworkLib.Constants.SR_CONNECTED_WITH_SL, true, NetworkLib.Constants.LOG_INFO, true);
-
         }
 
         public void sendSLAndSR(string name)
@@ -133,8 +142,7 @@ namespace Proxy
                 this.proxyBallots[name].YesNoPos = position;
 
 
-                string msg = NetworkLib.Constants.SL_AND_SR + "&" + SL.ToString()
-                     + "=" + SR.ToString();
+                string msg = NetworkLib.Constants.SL_AND_SR + "&" + SL.ToString() + "=" + SR.ToString();
                 numOfSentSLandSR += 1;
                 this.server.sendMessage(name, msg);
             }
@@ -191,18 +199,12 @@ namespace Proxy
 
         private string prepareBlindProxyBallot(BigInteger[] blindProxyBallot)
         {
-            string columns = null;
-            for (int i = 0; i < blindProxyBallot.Length; i++)
+            string columns = "";
+            for (int i = 0; i < blindProxyBallot.Length-1; i++)
             {
-                if (i != blindProxyBallot.Length - 1)
-                {
-                    columns = columns + blindProxyBallot[i].ToString() + ",";
-                }
-                else
-                {
-                    columns += blindProxyBallot[i].ToString();
-                }
+                columns = columns + blindProxyBallot[i].ToString() + ",";    
             }
+            columns += blindProxyBallot[blindProxyBallot.Length - 1].ToString();
 
             return columns;
         }
@@ -212,7 +214,7 @@ namespace Proxy
             string tokens = null;
             for (int i = 0; i < tokenList.Count - 1; i++)
             {
-                    tokens = tokens + tokenList[i].ToString() + ",";
+                tokens = tokens + tokenList[i].ToString() + ",";
             }
             return (tokens + tokenList[tokenList.Count - 1].ToString() + ";");
         }
@@ -276,15 +278,10 @@ namespace Proxy
             for (int i =0; i<strUnblindedBallotMatrix.Length;i++)
             {
                 Console.WriteLine(strUnblindedBallotMatrix[i]);
-                if (i != strUnblindedBallotMatrix.Length - 1)
-                {
-                    unblinedColumns = unblinedColumns + strUnblindedBallotMatrix[i] + ",";
-                }
-                else
-                {
-                    unblinedColumns += strUnblindedBallotMatrix[i];
-                }
+                unblinedColumns = unblinedColumns + strUnblindedBallotMatrix[i] + ","; 
             }
+            unblinedColumns += strUnblindedBallotMatrix[strUnblindedBallotMatrix.Length - 1];
+
 
             string message = NetworkLib.Constants.UNBLINED_BALLOT_MATRIX + "&" + name + ";" + unblinedColumns;
 

@@ -21,7 +21,7 @@ namespace ElectionAuthority
         {
             return this.candidateDefaultList.Count;
         }
-        public List<string> loadCanidateList(string path)
+        public void loadCanidateList(string path)
         {
             List<string> candidate = new List<string>();
             XmlDocument xml = new XmlDocument();
