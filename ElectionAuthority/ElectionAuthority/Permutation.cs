@@ -10,19 +10,20 @@ namespace ElectionAuthority
 {
     class Permutation
     {
-        public Permutation()
-        {
-        }
+        List<BigInteger> permutation = new List<BigInteger>();
 
-        public List<BigInteger> generatePermutation(int candidateQuantity)
+        public Permutation(int candidateQuantity)
         {
-            List<BigInteger> permutation = new List<BigInteger>();
             for (int i = 1; i <= candidateQuantity; i++)
             {
                 permutation.Add(new BigInteger(i.ToString()));
             }
             Utils.Extentions.Shuffle(permutation);
-            return permutation;
+        }
+
+        public List<BigInteger> getPermutation()
+        {
+            return this.permutation;
         }
 
         private int[,] generatePermutationMatrix(List<BigInteger> permutation)
@@ -66,7 +67,7 @@ namespace ElectionAuthority
             return temp;
         }
 
-        public List<BigInteger> getInversePermutation(List<BigInteger> permutation)
+        public List<BigInteger> getInversePermutation()
         {
             int[,] tab = generatePermutationMatrix(permutation);
 

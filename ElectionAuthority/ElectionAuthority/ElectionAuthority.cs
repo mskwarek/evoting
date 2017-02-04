@@ -26,11 +26,9 @@ namespace ElectionAuthority
 
         private Configuration configuration;
 
-        private Permutation permutation;
+        //private Permutation permutation;
 
-        private List<List<BigInteger>> permutationsList;
-
-        private List<List<BigInteger>> inversePermutationList;
+        private List<Permutation> permutationsList;
 
         private List<BigInteger> serialNumberList;
 
@@ -41,9 +39,7 @@ namespace ElectionAuthority
         private List<List<BigInteger>> signatureFactor;     
 
 
-        private Dictionary<BigInteger, List<BigInteger>> dictionarySLPermuation;
-
-        private Dictionary<BigInteger, List<BigInteger>> dictionarySLInversePermutation;
+        private Dictionary<BigInteger, Permutation> dictionarySLPermuation;
 
         private Dictionary<BigInteger, List<List<BigInteger>>> dictionarySLTokens;
 
@@ -74,8 +70,7 @@ namespace ElectionAuthority
             this.serverClient = new Server(this);
 
             this.numberOfVoters = Convert.ToInt32(this.configuration.NumberOfVoters);
-            permutation = new Permutation();
-
+            permutationsList = new List<Permutation>();
             this.ballots = new Dictionary<string, Ballot>();
 
             this.auditor = new Auditor();
@@ -114,7 +109,6 @@ namespace ElectionAuthority
         {
             this.generatePermutationList();
             connectSerialNumberAndPermutation();
-            generateInversePermutation();
             generatePermutationTokens();
             this.auditor.blindPermutation(permutationsList, this.pubKey);              //Send commited permutation to Auditor
             Utils.Logs.addLog("EA", NetworkLib.Constants.PERMUTATION_GEN_SUCCESSFULLY, true, NetworkLib.Constants.LOG_INFO);
@@ -123,10 +117,9 @@ namespace ElectionAuthority
         private void generatePermutationList()
         {
             //generating permutation and feeling List
-            permutationsList = new List<List<BigInteger>>();
             for (int i = 0; i < this.numberOfVoters; i++)
             {
-                this.permutationsList.Add(new List<BigInteger>(this.permutation.generatePermutation(this.candidateList.getNumberOfCandidates())));
+                this.permutationsList.Add(new Permutation(this.candidateList.getNumberOfCandidates()));
             }
         }
 
@@ -147,28 +140,6 @@ namespace ElectionAuthority
                 permutationExponentsList.Add(publicKey.Exponent);
             }
             Utils.Logs.addLog("EA", "Permutation tokens generated", true, NetworkLib.Constants.LOG_INFO, true);
-        }
-
-        private void generateInversePermutation()
-        {
-            //using mathematics to generate inverse permutation for our List
-            this.inversePermutationList = new List<List<BigInteger>>();
-            for (int i = 0; i < this.numberOfVoters; i++)
-            {
-                this.inversePermutationList.Add(this.permutation.getInversePermutation(this.permutationsList[i]));
-            }
-            Utils.Logs.addLog("EA", NetworkLib.Constants.GENERATE_INVERSE_PERMUTATION, true, NetworkLib.Constants.LOG_INFO, true);
-            connectSerialNumberAndInversePermutation();
-        }
-
-        private void connectSerialNumberAndInversePermutation()
-        {
-            dictionarySLInversePermutation = new Dictionary<BigInteger, List<BigInteger>>();
-            for (int i = 0; i < this.serialNumberList.Count; i++)
-            {
-                dictionarySLInversePermutation.Add(this.serialNumberList[i], this.inversePermutationList[i]);
-            }
-            Utils.Logs.addLog("EA", NetworkLib.Constants.SL_CONNECTED_WITH_INVERSE_PERMUTATION, true, NetworkLib.Constants.LOG_INFO, true);
         }
 
         private void generateSerialNumber()
@@ -216,7 +187,7 @@ namespace ElectionAuthority
 
         private void connectSerialNumberAndPermutation()
         {
-            dictionarySLPermuation = new Dictionary<BigInteger, List<BigInteger>>();
+            dictionarySLPermuation = new Dictionary<BigInteger, Permutation>();
             for (int i = 0; i < this.serialNumberList.Count; i++)
             {
                 dictionarySLPermuation.Add(this.serialNumberList[i], this.permutationsList[i]);
@@ -274,7 +245,7 @@ namespace ElectionAuthority
 
         public void getCandidateListPermuated(string name, BigInteger SL)
         {
-            string candidateListString = this.candidateList.getCandidateListPermuated(name, this.dictionarySLPermuation[SL]);
+            string candidateListString = this.candidateList.getCandidateListPermuated(name, this.dictionarySLPermuation[SL].getPermutation());
             this.serverClient.sendMessage(name, candidateListString);
         }
 
@@ -317,8 +288,8 @@ namespace ElectionAuthority
             this.ballots.Add(name, new Ballot(SL));
 
             this.ballots[name].BlindColumn = columns;
-            this.ballots[name].Permutation = this.dictionarySLPermuation[SL];
-            this.ballots[name].InversePermutation = this.dictionarySLInversePermutation[SL];
+            this.ballots[name].Permutation = this.dictionarySLPermuation[SL].getPermutation();
+            this.ballots[name].InversePermutation = this.dictionarySLPermuation[SL].getInversePermutation();
             this.ballots[name].TokenList = tokenList;
             this.ballots[name].ExponentsList = exponentList;
             this.ballots[name].SignatureFactor = this.dictionarySLTokens[SL][2];

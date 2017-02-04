@@ -39,7 +39,7 @@ namespace ElectionAuthority
         }
 
 
-        public void blindPermutation(List<List<BigInteger>> permutationList, RsaKeyParameters pubKey)
+        public void blindPermutation(List<Permutation> permutationList, RsaKeyParameters pubKey)
         {
             int size = permutationList.Count;
             BigInteger[] toSend = new BigInteger[size];
@@ -47,10 +47,10 @@ namespace ElectionAuthority
             //preparing List of permutation to send
             int k = 0;
             string[] strPermuationList = new string[permutationList.Count];
-            foreach (List<BigInteger> list in permutationList)
+            foreach (Permutation list in permutationList)
             {
                 string str = "";
-                foreach (BigInteger big in list)
+                foreach (BigInteger big in list.getPermutation())
                 {
                     str += big.ToString();
                 }
@@ -72,7 +72,7 @@ namespace ElectionAuthority
             this.CommitedPermatation = toSend;
         }
 
-        public void unblindPermutation(List<List<BigInteger>> permutationList, RsaKeyParameters pubKey, RsaKeyParameters privKey)
+        public void unblindPermutation(List<Permutation> permutationList, RsaKeyParameters pubKey, RsaKeyParameters privKey)
         {
             int size = permutationList.Count;
             List<BigInteger> toSend = new List<BigInteger>();
@@ -80,10 +80,10 @@ namespace ElectionAuthority
             int k = 0;
             string[] strPermuationList = new string[permutationList.Count];
 
-            foreach (List<BigInteger> list in permutationList)
+            foreach (Permutation list in permutationList)
             {
                 string str = null;
-                foreach (BigInteger big in list)
+                foreach (BigInteger big in list.getPermutation())
                 {
                     str += big.ToString();
                 }
