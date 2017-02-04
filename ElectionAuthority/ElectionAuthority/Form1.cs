@@ -59,13 +59,9 @@ namespace ElectionAuthority
         {
             if (this.electionAuthority != null)
             {
-                if (this.electionAuthority.ServerProxy != null)
-                {
-                    this.electionAuthority.ServerClient.stopServer();
-                }
                 if (this.electionAuthority.ServerClient != null)
                 {
-                    this.electionAuthority.ServerProxy.stopServer();
+                    this.electionAuthority.ServerClient.stopServer();
                 }
             }           
         }

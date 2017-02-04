@@ -19,6 +19,7 @@ namespace ElectionAuthority
         public bool parseMessage(string msg)
         {
             string[] words = msg.Split('&');
+            Utils.Logs.addLog("EA", msg, true, NetworkLib.Constants.LOG_INFO, true);
             switch (words[0])
             {
                 case NetworkLib.Constants.SL_RECEIVED_SUCCESSFULLY:

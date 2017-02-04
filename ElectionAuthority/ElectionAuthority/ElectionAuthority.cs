@@ -22,12 +22,6 @@ namespace ElectionAuthority
             get { return serverClient; }
         }
 
-        private Server serverProxy; 
-        public Server ServerProxy
-        {
-            get { return serverProxy; }
-        }
-
         private CandidateList candidateList;
 
         private Configuration configuration;
@@ -79,9 +73,6 @@ namespace ElectionAuthority
             //server for Clients
             this.serverClient = new Server(this);
 
-            //server for Proxy
-            this.serverProxy = new Server(this);
-
             this.numberOfVoters = Convert.ToInt32(this.configuration.NumberOfVoters);
             permutation = new Permutation();
 
@@ -111,7 +102,6 @@ namespace ElectionAuthority
         public void startServices()
         {
             this.serverClient.startServer(configuration.ElectionAuthorityPortClient);
-            this.serverProxy.startServer(configuration.ElectionAuthorityPortProxy);
         }
 
         public void loadCandidateList(string pathToElectionAuthorityConfig)
@@ -279,7 +269,7 @@ namespace ElectionAuthority
             }
             msg += ";";
 
-            this.serverProxy.sendMessage(NetworkLib.Constants.PROXY, msg);
+            this.serverClient.sendMessage(NetworkLib.Constants.PROXY, msg);
         }
 
         public void getCandidateListPermuated(string name, BigInteger SL)
@@ -351,7 +341,7 @@ namespace ElectionAuthority
             signColumns += this.ballots[name].SignedColumn[this.ballots[name].SignedColumn.Length - 1].ToString();
 
             string msg = NetworkLib.Constants.SIGNED_PROXY_BALLOT + "&" + name + ";" + signColumns;
-            this.serverProxy.sendMessage(NetworkLib.Constants.PROXY, msg);
+            this.serverClient.sendMessage(NetworkLib.Constants.PROXY, msg);
             Utils.Logs.addLog("EA", NetworkLib.Constants.SIGNED_BALLOT_MATRIX_SENT, true, NetworkLib.Constants.LOG_INFO, true);
         }
 
@@ -393,15 +383,6 @@ namespace ElectionAuthority
 
         public void disbaleProxy()
         {
-            try
-            {
-                this.serverProxy.stopServer();
-            }
-            catch (Exception)
-            {
-                Utils.Logs.addLog("EA", NetworkLib.Constants.UNABLE_TO_STOP_VOTING, true, NetworkLib.Constants.LOG_ERROR, true);
-            }
-
             Utils.Logs.addLog("EA",NetworkLib.Constants.VOTIGN_STOPPED, true, NetworkLib.Constants.LOG_INFO, true);
         }
 

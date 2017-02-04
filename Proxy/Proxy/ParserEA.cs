@@ -20,7 +20,7 @@ namespace Proxy
             Dictionary<BigInteger, List<List<BigInteger>>> dict = new Dictionary<BigInteger, List<List<BigInteger>>>();
 
             string[] dictionaryElem = msg.Split(';');
-            for (int i = 0; i < dictionaryElem.Length; i++)
+            for (int i = 0; i < dictionaryElem.Length-1; i++)
             {
 
                 string[] words = dictionaryElem[i].Split('=');
@@ -28,7 +28,6 @@ namespace Proxy
                 List<List<BigInteger>> mainList = new List<List<BigInteger>>();
 
                 string[] token = words[1].Split(':');
-
 
                 string[] tokenList = token[0].Split(',');
                 List<BigInteger> firstList = new List<BigInteger>();
@@ -38,7 +37,6 @@ namespace Proxy
                 }
                 mainList.Add(firstList);
 
-
                 string[] exponentsList = token[1].Split(',');
                 List<BigInteger> secondList = new List<BigInteger>();
                 foreach (string str in exponentsList)
@@ -47,10 +45,7 @@ namespace Proxy
                 }
                 mainList.Add(secondList);
 
-
                 dict.Add(SL, mainList);
-
-
             }
 
             this.proxy.SerialNumberTokens = dict;
