@@ -26,8 +26,6 @@ namespace ElectionAuthority
 
         private Configuration configuration;
 
-        //private Permutation permutation;
-
         private List<Permutation> permutationsList;
 
         private List<BigInteger> serialNumberList;
@@ -38,27 +36,24 @@ namespace ElectionAuthority
     
         private List<List<BigInteger>> signatureFactor;     
 
-
         private Dictionary<BigInteger, Permutation> dictionarySLPermuation;
 
         private Dictionary<BigInteger, List<List<BigInteger>>> dictionarySLTokens;
 
         private Dictionary<string, Ballot> ballots;
 
-        private int numberOfVoters;
-
         private List<int> finalResults;
 
-        private Auditor auditor;                            
-
-        private RsaKeyParameters privKey;                   
-
-        private RsaKeyParameters pubKey;                    
+        private Auditor auditor;                                            
 
         private List<BigInteger> permutationTokensList;
 
         private List<BigInteger> permutationExponentsList;
 
+        private int getNumberOfVoters()
+        {
+            return Convert.ToInt32(this.configuration.NumberOfVoters);
+        }
 
         public ElectionAuthority(string filename)
         {
@@ -69,29 +64,13 @@ namespace ElectionAuthority
             //server for Clients
             this.serverClient = new Server(this);
 
-            this.numberOfVoters = Convert.ToInt32(this.configuration.NumberOfVoters);
             permutationsList = new List<Permutation>();
             this.ballots = new Dictionary<string, Ballot>();
 
             this.auditor = new Auditor();
 
-            this.initKeyPair();
-
             this.loadCandidateList("C:\\Users\\mskwarek\\Documents\\Visual Studio 2015\\Projects\\PKRY\\Config\\CandidateList.xml");
             finalResults = new List<int>(this.candidateList.getNumberOfCandidates());
-        }
-
-        private void initKeyPair()
-        {
-            //init key pair generator (for RSA bit-commitment)
-            KeyGenerationParameters para = new KeyGenerationParameters(new SecureRandom(), 1024);
-            RsaKeyPairGenerator keyGen = new RsaKeyPairGenerator();
-            keyGen.Init(para);
-
-            //generate key pair and get keys (for bit-commitment)
-            AsymmetricCipherKeyPair keypair = keyGen.GenerateKeyPair();
-            privKey = (RsaKeyParameters)keypair.Private;
-            pubKey = (RsaKeyParameters)keypair.Public;
         }
 
         public void startServices()
@@ -110,14 +89,14 @@ namespace ElectionAuthority
             this.generatePermutationList();
             connectSerialNumberAndPermutation();
             generatePermutationTokens();
-            this.auditor.blindPermutation(permutationsList, this.pubKey);              //Send commited permutation to Auditor
+            this.auditor.blindPermutation(permutationsList);              //Send commited permutation to Auditor
             Utils.Logs.addLog("EA", NetworkLib.Constants.PERMUTATION_GEN_SUCCESSFULLY, true, NetworkLib.Constants.LOG_INFO);
         }
 
         private void generatePermutationList()
         {
             //generating permutation and feeling List
-            for (int i = 0; i < this.numberOfVoters; i++)
+            for (int i = 0; i < this.getNumberOfVoters(); i++)
             {
                 this.permutationsList.Add(new Permutation(this.candidateList.getNumberOfCandidates()));
             }
@@ -128,7 +107,7 @@ namespace ElectionAuthority
             this.permutationTokensList = new List<BigInteger>();
             this.permutationExponentsList = new List<BigInteger>();
 
-            for (int i = 0; i < this.numberOfVoters; i++)
+            for (int i = 0; i < this.getNumberOfVoters(); i++)
             {
                 // we use the same method like to generate serial number, 
                 // there is another random generator used inside this method
@@ -146,7 +125,7 @@ namespace ElectionAuthority
         {
             //Generating serial numbers (SL)
             serialNumberList = new List<BigInteger>();
-            serialNumberList = SerialNumberGenerator.generateListOfSerialNumber(this.numberOfVoters, NetworkLib.Constants.NUMBER_OF_BITS_SL);
+            serialNumberList = SerialNumberGenerator.generateListOfSerialNumber(this.getNumberOfVoters(), NetworkLib.Constants.NUMBER_OF_BITS_SL);
 
             Utils.Logs.addLog("EA", NetworkLib.Constants.SERIAL_NUMBER_GEN_SUCCESSFULLY, true, NetworkLib.Constants.LOG_INFO, true);
         }
@@ -159,7 +138,7 @@ namespace ElectionAuthority
             this.signatureFactor = new List<List<BigInteger>>();
 
 
-            for (int i = 0; i < this.numberOfVoters; i++)
+            for (int i = 0; i < this.getNumberOfVoters(); i++)
             { // we use the same method like to generate serial number, there is another random generator used inside this method
                 List<AsymmetricCipherKeyPair> preToken = new List<AsymmetricCipherKeyPair>(SerialNumberGenerator.generatePreTokens(4, NetworkLib.Constants.NUMBER_OF_BITS_TOKEN));
                 List<BigInteger> tokens = new List<BigInteger>();
@@ -361,7 +340,7 @@ namespace ElectionAuthority
         {
             /*ublindPermutation - EA send to voter unblinded permutation (and then private key) so Audiotr
                 can check RSA formula*/
-            this.auditor.unblindPermutation(permutationsList, this.pubKey, this.privKey);
+            this.auditor.unblindPermutation(permutationsList);
 
             for (int i = 0; i < this.ballots.Count; i++)
             {
