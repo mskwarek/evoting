@@ -2,13 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Net.Sockets;
-using System.Windows.Forms;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Crypto.Generators;
+using Newtonsoft.Json;
 
 namespace ElectionAuthority
 {
@@ -26,29 +23,13 @@ namespace ElectionAuthority
 
         private Configuration configuration;
 
-        private List<Permutation> permutationsList;
-
         private List<BigInteger> serialNumberList;
-
-        private List<List<BigInteger>> tokensList;          
-
-        private List<List<BigInteger>> exponentsList;  
-    
-        private List<List<BigInteger>> signatureFactor;     
-
-        private Dictionary<BigInteger, Permutation> dictionarySLPermuation;
-
-        private Dictionary<BigInteger, List<List<BigInteger>>> dictionarySLTokens;
 
         private Dictionary<string, Ballot> ballots;
 
         private List<int> finalResults;
 
         private Auditor auditor;                                            
-
-        private List<BigInteger> permutationTokensList;
-
-        private List<BigInteger> permutationExponentsList;
 
         private int getNumberOfVoters()
         {
@@ -64,13 +45,14 @@ namespace ElectionAuthority
             //server for Clients
             this.serverClient = new Server(this);
 
-            permutationsList = new List<Permutation>();
             this.ballots = new Dictionary<string, Ballot>();
-
+            this.serialNumberList = new List<BigInteger>();
             this.auditor = new Auditor();
-
             this.loadCandidateList("C:\\Users\\mskwarek\\Documents\\Visual Studio 2015\\Projects\\PKRY\\Config\\CandidateList.xml");
             finalResults = new List<int>(this.candidateList.getNumberOfCandidates());
+            this.generateDate(); //method generate Serial number (SL), permutations of candidate list and tokens
+
+            this.sendSLAndTokensToProxyJson();
         }
 
         public void startServices()
@@ -86,38 +68,25 @@ namespace ElectionAuthority
 
         private void generatePermutation()
         {
-            this.generatePermutationList();
             connectSerialNumberAndPermutation();
             generatePermutationTokens();
-            this.auditor.blindPermutation(permutationsList);              //Send commited permutation to Auditor
+            this.auditor.blindPermutation(this.getPermutationsList());              //Send commited permutation to Auditor
             Utils.Logs.addLog("EA", NetworkLib.Constants.PERMUTATION_GEN_SUCCESSFULLY, true, NetworkLib.Constants.LOG_INFO);
         }
 
-        private void generatePermutationList()
+        private List<Permutation> getPermutationsList()
         {
+            List<Permutation> permutations = new List<Permutation>();
             //generating permutation and feeling List
             for (int i = 0; i < this.getNumberOfVoters(); i++)
             {
-                this.permutationsList.Add(new Permutation(this.candidateList.getNumberOfCandidates()));
+                permutations.Add(this.ballots.Values.ToList().ElementAt(i).Permutation);
             }
+            return permutations;
         }
 
         private void generatePermutationTokens()
         {
-            this.permutationTokensList = new List<BigInteger>();
-            this.permutationExponentsList = new List<BigInteger>();
-
-            for (int i = 0; i < this.getNumberOfVoters(); i++)
-            {
-                // we use the same method like to generate serial number, 
-                // there is another random generator used inside this method
-                List<AsymmetricCipherKeyPair> preToken = new List<AsymmetricCipherKeyPair>(SerialNumberGenerator.generatePreTokens(1, NetworkLib.Constants.NUMBER_OF_BITS_TOKEN));
-
-                RsaKeyParameters publicKey = (RsaKeyParameters)preToken[0].Public;
-                RsaKeyParameters privKey = (RsaKeyParameters)preToken[0].Private;
-                permutationTokensList.Add(publicKey.Modulus);
-                permutationExponentsList.Add(publicKey.Exponent);
-            }
             Utils.Logs.addLog("EA", "Permutation tokens generated", true, NetworkLib.Constants.LOG_INFO, true);
         }
 
@@ -133,29 +102,20 @@ namespace ElectionAuthority
         private void generateTokens()
         {
             //preparing Big Integers for RSA blind signature (token have to fulfil requirments) 
-            this.tokensList = new List<List<BigInteger>>();
-            this.exponentsList = new List<List<BigInteger>>();
-            this.signatureFactor = new List<List<BigInteger>>();
+            //this.tokensList = new List<List<BigInteger>>();
+            //this.exponentsList = new List<List<BigInteger>>();
+            //this.signatureFactor = new List<List<BigInteger>>();
 
 
             for (int i = 0; i < this.getNumberOfVoters(); i++)
-            { // we use the same method like to generate serial number, there is another random generator used inside this method
-                List<AsymmetricCipherKeyPair> preToken = new List<AsymmetricCipherKeyPair>(SerialNumberGenerator.generatePreTokens(4, NetworkLib.Constants.NUMBER_OF_BITS_TOKEN));
-                List<BigInteger> tokens = new List<BigInteger>();
-                List<BigInteger> exps = new List<BigInteger>();
-                List<BigInteger> signFactor = new List<BigInteger>();
-
-                foreach (AsymmetricCipherKeyPair token in preToken)
-                {
-                    RsaKeyParameters publicKey = (RsaKeyParameters)token.Public;
-                    RsaKeyParameters privKey = (RsaKeyParameters)token.Private;
-                    tokens.Add(publicKey.Modulus);
-                    exps.Add(publicKey.Exponent);
-                    signFactor.Add(privKey.Exponent);
-                }
-                this.tokensList.Add(tokens);
-                this.exponentsList.Add(exps);
-                this.signatureFactor.Add(signFactor);
+            {
+                // we use the same method like to generate serial number, 
+                // there is another random generator used inside this method
+                // List<AsymmetricCipherKeyPair> preToken = new List<AsymmetricCipherKeyPair>(SerialNumberGenerator.generatePreTokens(Convert.ToInt32(configuration.NumberOfVoters), NetworkLib.Constants.NUMBER_OF_BITS_TOKEN));
+                
+                // this.tokensList.Add(tokens);
+                // this.exponentsList.Add(exps);
+                // this.signatureFactor.Add(signFactor);
             }
 
 
@@ -166,25 +126,20 @@ namespace ElectionAuthority
 
         private void connectSerialNumberAndPermutation()
         {
-            dictionarySLPermuation = new Dictionary<BigInteger, Permutation>();
-            for (int i = 0; i < this.serialNumberList.Count; i++)
-            {
-                dictionarySLPermuation.Add(this.serialNumberList[i], this.permutationsList[i]);
-            }
             Utils.Logs.addLog("EA", NetworkLib.Constants.SL_CONNECTED_WITH_PERMUTATION, true, NetworkLib.Constants.LOG_INFO);
         }
 
         private void connectSerialNumberAndTokens()
         {
-            this.dictionarySLTokens = new Dictionary<BigInteger, List<List<BigInteger>>>();
-            for (int i = 0; i < this.serialNumberList.Count; i++)
-            {
-                List<List<BigInteger>> tokens = new List<List<BigInteger>>();
-                tokens.Add(tokensList[i]);
-                tokens.Add(exponentsList[i]);
-                tokens.Add(signatureFactor[i]);
-                this.dictionarySLTokens.Add(this.serialNumberList[i], tokens);
-            }
+            //this.dictionarySLTokens = new Dictionary<BigInteger, List<List<BigInteger>>>();
+            //for (int i = 0; i < this.serialNumberList.Count; i++)
+            //{
+            //    List<List<BigInteger>> tokens = new List<List<BigInteger>>();
+            //    tokens.Add(tokensList[i]);
+            //    tokens.Add(exponentsList[i]);
+            //    tokens.Add(signatureFactor[i]);
+            //    this.dictionarySLTokens.Add(this.serialNumberList[i], tokens);
+            //}
 
             Utils.Logs.addLog("EA", NetworkLib.Constants.SL_CONNECTED_WITH_TOKENS, true, NetworkLib.Constants.LOG_INFO);
         }
@@ -192,39 +147,31 @@ namespace ElectionAuthority
         public void generateDate()
         {
             generateSerialNumber();
+            for(int i = 0; i < this.candidateList.getNumberOfCandidates(); ++i)
+            {
+                this.ballots.Add(i.ToString(), new Ballot(this.serialNumberList.ElementAt(i)));
+            }
             generateTokens();
             generatePermutation();
 
         }
-        public void sendSLAndTokensToProxy()
+
+        public void sendSLAndTokensToProxyJson()
         {
-            //before sending we have to convert dictionary to string. We use our own conversion to recoginize message in proxy and reparse it to dictionary
+            Ballot test = this.ballots.Values.First();
+            NetworkLib.MessageSLTokens msg = new NetworkLib.MessageSLTokens(test.SL, test.TokenList, test.ExponentsList);
+            string data = JsonConvert.SerializeObject(msg);
+            NetworkLib.JsonMessage request = new NetworkLib.JsonMessage(NetworkLib.Constants.SL_TOKENS, data);
+            string json = JsonConvert.SerializeObject(request);
 
-            string msg = NetworkLib.Constants.SL_TOKENS + "&";
-            for (int i = 0; i < this.serialNumberList.Count; i++)
-            {
-                msg = msg + this.serialNumberList[i].ToString() + "=";
-                for (int j = 0; j < this.tokensList[i].Count - 1; j++)
-                {
-                    msg = msg + this.tokensList[i][j].ToString() + ",";
-                }
-                msg = msg + this.tokensList[i][this.tokensList[i].Count-1].ToString() + ":";
-
-
-                for (int j = 0; j < this.exponentsList[i].Count - 1; j++)
-                {
-                    msg = msg + this.exponentsList[i][j].ToString() + ",";
-                }
-                msg += this.exponentsList[i][this.exponentsList[i].Count - 1].ToString();
-            }
-            msg += ";";
-
-            this.serverClient.sendMessage(NetworkLib.Constants.PROXY, msg);
+            Utils.Logs.addLog("EA request json", json, true, NetworkLib.Constants.LOG_INFO, true);
+            this.serverClient.sendMessage(NetworkLib.Constants.PROXY, json);
         }
 
         public void getCandidateListPermuated(string name, BigInteger SL)
         {
-            string candidateListString = this.candidateList.getCandidateListPermuated(name, this.dictionarySLPermuation[SL].getPermutation());
+            Ballot specBallot = this.ballots.Values.ToList().Find(x => x.SL.Equals(SL));
+            string candidateListString = this.candidateList.getCandidateListPermuated(name, specBallot.Permutation.getPermutation());
             this.serverClient.sendMessage(name, candidateListString);
         }
 
@@ -264,14 +211,11 @@ namespace ElectionAuthority
                 columns[i] = new BigInteger(strColumns[i]);
             }
 
-            this.ballots.Add(name, new Ballot(SL));
-
+            
             this.ballots[name].BlindColumn = columns;
-            this.ballots[name].Permutation = this.dictionarySLPermuation[SL].getPermutation();
-            this.ballots[name].InversePermutation = this.dictionarySLPermuation[SL].getInversePermutation();
             this.ballots[name].TokenList = tokenList;
             this.ballots[name].ExponentsList = exponentList;
-            this.ballots[name].SignatureFactor = this.dictionarySLTokens[SL][2];
+            //this.ballots[name].SignatureFactor = this.dictionarySLTokens[SL][2];
 
             Utils.Logs.addLog("EA", NetworkLib.Constants.BLIND_PROXY_BALLOT_RECEIVED + name, true, NetworkLib.Constants.LOG_INFO, true);
 
@@ -314,7 +258,7 @@ namespace ElectionAuthority
             }
 
             string[,] unblindedUnpermuatedBallot = new string[this.candidateList.getNumberOfCandidates(), NetworkLib.Constants.BALLOT_SIZE];
-            BigInteger[] inversePermutation = this.ballots[name].InversePermutation.ToArray();
+            BigInteger[] inversePermutation = this.ballots[name].Permutation.getInversePermutation().ToArray();
 
             for (int i = 0; i < unblindedUnpermuatedBallot.GetLength(0); i++)
             {
@@ -340,7 +284,7 @@ namespace ElectionAuthority
         {
             /*ublindPermutation - EA send to voter unblinded permutation (and then private key) so Audiotr
                 can check RSA formula*/
-            this.auditor.unblindPermutation(permutationsList);
+            this.auditor.unblindPermutation(this.getPermutationsList());
 
             for (int i = 0; i < this.ballots.Count; i++)
             {

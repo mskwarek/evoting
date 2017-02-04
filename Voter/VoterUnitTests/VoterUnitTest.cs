@@ -85,7 +85,6 @@ namespace VoterUnitTests
 
             Assert.IsTrue(voter.ElectionAuthorityClient.Connected);
             Assert.IsTrue(voter.ProxyClient.Connected);
-            form.senSLAndSR();
             Thread.Sleep(1000);
             voter.requestForSLandSR();
             Thread.Sleep(1000);

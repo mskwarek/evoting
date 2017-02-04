@@ -16,7 +16,7 @@ namespace Proxy
         public Form1()
         {
             InitializeComponent();
-            loadConfig("C:\\Users\\mskwarek\\Documents\\Visual Studio 2015\\Projects\\PKRY\\Config\\Proxy.xml");
+            loadConfig("C:\\Users\\mskwarek\\Documents\\Visual Studio 2015\\Projects\\evoting\\Config\\Proxy.xml");
             startProxyService();
             connectToEA();
         }

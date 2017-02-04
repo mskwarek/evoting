@@ -12,6 +12,7 @@ namespace ElectionAuthority
 {
     class Ballot
     {
+        public int numberOfVoters = 5;
         private BigInteger sl;
         public BigInteger SL
         {
@@ -58,23 +59,50 @@ namespace ElectionAuthority
             get { return unblindedBallot; }
         }
 
-        private List<BigInteger> permutation;
-        public List<BigInteger> Permutation
+        private Permutation permutation;
+        public Permutation Permutation
         {
             set { permutation = value; }
             get { return permutation; }
         }
 
-        private List<BigInteger> inversePermutation;
-        public List<BigInteger> InversePermutation
-        {
-            set { inversePermutation = value; }
-            get { return inversePermutation; }
-        }
+        private BigInteger permutationToken;
+        private BigInteger permutationExponent;
 
         public Ballot(BigInteger SL)
         {
-            this.sl = SL;          
+            this.sl = SL;
+            this.Permutation = new Permutation(this.numberOfVoters);
+            this.permutationToken = new BigInteger("0");
+            this.permutationExponent = new BigInteger("0");
+            this.generateTokens();
+        }
+
+        private void generateTokens()
+        {
+            List<AsymmetricCipherKeyPair> preToken = new List<AsymmetricCipherKeyPair>(SerialNumberGenerator.generatePreTokens(Convert.ToInt32(this.numberOfVoters), NetworkLib.Constants.NUMBER_OF_BITS_TOKEN));
+
+            List<BigInteger> tokens = new List<BigInteger>();
+            List<BigInteger> exps = new List<BigInteger>();
+            List<BigInteger> signFactor = new List<BigInteger>();
+
+            foreach (AsymmetricCipherKeyPair token in preToken)
+            {
+                RsaKeyParameters publKey = (RsaKeyParameters)token.Public;
+                RsaKeyParameters prKey = (RsaKeyParameters)token.Private;
+                tokens.Add(publKey.Modulus);
+                exps.Add(publKey.Exponent);
+                signFactor.Add(prKey.Exponent);
+            }
+
+            RsaKeyParameters publicKey = (RsaKeyParameters)preToken[0].Public;
+            RsaKeyParameters privKey = (RsaKeyParameters)preToken[0].Private;
+            permutationToken = (publicKey.Modulus);
+            permutationExponent = (publicKey.Exponent);
+
+            this.exponentsList = exps;
+            this.tokenList = tokens;
+            this.signatureFactor = signFactor;
         }
 
         public void signColumn()

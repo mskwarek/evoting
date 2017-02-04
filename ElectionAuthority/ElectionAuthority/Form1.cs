@@ -17,7 +17,7 @@ namespace ElectionAuthority
         public Form1()
         {
             InitializeComponent();
-            this.loadConfig("C:\\Users\\mskwarek\\Documents\\Visual Studio 2015\\Projects\\PKRY\\Config\\ElectionAuthority.xml");
+            this.loadConfig("C:\\Users\\mskwarek\\Documents\\Visual Studio 2015\\Projects\\evoting\\Config\\ElectionAuthority.xml");
             this.startEaService();
         }
 
@@ -31,7 +31,6 @@ namespace ElectionAuthority
         public void startEaService()
         {
             this.electionAuthority.startServices();
-            this.electionAuthority.generateDate(); //method generate Serial number (SL), permutations of candidate list and tokens
         }
 
         private void configButton_Click(object sender, EventArgs e)
@@ -68,12 +67,7 @@ namespace ElectionAuthority
 
         private void button1_Click(object sender, EventArgs e)
         {
-            senSLAndSR();
-        }
 
-        public void senSLAndSR()
-        {
-            this.electionAuthority.sendSLAndTokensToProxy();
         }
 
         public void disableSendSLTokensAndTokensButton()

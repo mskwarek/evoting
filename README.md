@@ -1,8 +1,8 @@
-# PKRY
+# PKRY\n\n
 
-C# implementation of safe e-voting system. 
+C# implementation of safe e-voting system. \n\n
 
-Uses:
--blind signature (RSA)
--block ciphers
--network communication
+Uses:\n
+-blind signature (RSA)\n
+-block ciphers\n
+-network communication\n

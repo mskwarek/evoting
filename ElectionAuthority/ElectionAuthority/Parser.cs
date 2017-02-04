@@ -38,7 +38,7 @@ namespace ElectionAuthority
                     this.electionAuthority.saveUnblindedBallotMatrix(words[1]);
                     return true;
                 case "REQUEST_SL":
-                    this.electionAuthority.sendSLAndTokensToProxy();
+                    this.electionAuthority.sendSLAndTokensToProxyJson();
                     return true;
                 default:
                     return false;
