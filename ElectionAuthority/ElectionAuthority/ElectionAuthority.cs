@@ -52,7 +52,6 @@ namespace ElectionAuthority
             finalResults = new List<int>(this.candidateList.getNumberOfCandidates());
             this.generateDate(); //method generate Serial number (SL), permutations of candidate list and tokens
 
-            this.sendSLAndTokensToProxyJson();
         }
 
         public void startServices()
@@ -161,18 +160,17 @@ namespace ElectionAuthority
             Ballot test = this.ballots.Values.First();
             NetworkLib.MessageSLTokens msg = new NetworkLib.MessageSLTokens(test.SL, test.TokenList, test.ExponentsList);
             string data = JsonConvert.SerializeObject(msg);
-            NetworkLib.JsonMessage request = new NetworkLib.JsonMessage(NetworkLib.Constants.SL_TOKENS, data);
-            string json = JsonConvert.SerializeObject(request);
 
-            Utils.Logs.addLog("EA request json", json, true, NetworkLib.Constants.LOG_INFO, true);
-            this.serverClient.sendMessage(NetworkLib.Constants.PROXY, json);
+
+            Utils.Logs.addLog("EA request json", data, true, NetworkLib.Constants.LOG_INFO, true);
+            this.serverClient.sendMessage(NetworkLib.Constants.PROXY, NetworkLib.Constants.SL_TOKENS, data);
         }
 
         public void getCandidateListPermuated(string name, BigInteger SL)
         {
             Ballot specBallot = this.ballots.Values.ToList().Find(x => x.SL.Equals(SL));
             string candidateListString = this.candidateList.getCandidateListPermuated(name, specBallot.Permutation.getPermutation());
-            this.serverClient.sendMessage(name, candidateListString);
+            this.serverClient.sendMessage(name, NetworkLib.Constants.CANDIDATE_LIST_RESPONSE, candidateListString);
         }
 
         public void saveBlindBallotMatrix(string message)
@@ -234,8 +232,8 @@ namespace ElectionAuthority
 
             signColumns += this.ballots[name].SignedColumn[this.ballots[name].SignedColumn.Length - 1].ToString();
 
-            string msg = NetworkLib.Constants.SIGNED_PROXY_BALLOT + "&" + name + ";" + signColumns;
-            this.serverClient.sendMessage(NetworkLib.Constants.PROXY, msg);
+            string msg =  name + ";" + signColumns;
+            this.serverClient.sendMessage(NetworkLib.Constants.PROXY, NetworkLib.Constants.SIGNED_PROXY_BALLOT, msg);
             Utils.Logs.addLog("EA", NetworkLib.Constants.SIGNED_BALLOT_MATRIX_SENT, true, NetworkLib.Constants.LOG_INFO, true);
         }
 

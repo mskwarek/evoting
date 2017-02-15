@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Org.BouncyCastle.Math;
+using Newtonsoft.Json;
 
 namespace Proxy
 {
@@ -55,11 +56,12 @@ namespace Proxy
 
         public void parseMessageFromEA(string msg)
         {
-            string[] elem = msg.Split('&');
-            switch (elem[0])
+            NetworkLib.JsonMessage jsonmsg = JsonConvert.DeserializeObject<NetworkLib.JsonMessage>(msg);
+
+            switch (jsonmsg.header)
             {
                 case NetworkLib.Constants.SL_TOKENS:
-                    if (parseSLTokensDictionaryFromEA(elem[1]))
+                    if (parseSLTokensDictionaryFromEA(jsonmsg.data))
                         this.proxy.Client.sendMessage(NetworkLib.Constants.SL_RECEIVED_SUCCESSFULLY + "&");
                     Utils.Logs.addLog("Client", NetworkLib.Constants.SL_RECEIVED, true, NetworkLib.Constants.LOG_INFO, true);
                     break;
@@ -67,7 +69,7 @@ namespace Proxy
                     Utils.Logs.addLog("Client", NetworkLib.Constants.PROXY_CONNECTED_TO_EA, true, NetworkLib.Constants.LOG_INFO, true);
                     break;
                 case NetworkLib.Constants.SIGNED_PROXY_BALLOT:
-                    this.proxy.saveSignedBallot(elem[1]);
+                    this.proxy.saveSignedBallot(jsonmsg.data);
                     break;
             }
         }

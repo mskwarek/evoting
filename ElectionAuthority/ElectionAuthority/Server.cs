@@ -5,6 +5,7 @@ using System.Text;
 using System.Net.Sockets;
 using System.Threading;
 using System.Net;
+using Newtonsoft.Json;
 
 namespace ElectionAuthority
 {
@@ -38,7 +39,7 @@ namespace ElectionAuthority
             if (!clientSockets.ContainsKey(myArgs.ID))
             {
                 updateClientName(myArgs.ID, myArgs.Message);
-                sendMessage(clientSockets[myArgs.ID], NetworkLib.Constants.CONNECTED);
+                sendMessage(clientSockets[myArgs.ID], NetworkLib.Constants.CONNECTED, "");
             }
             this.parser.parseMessage(myArgs.Message);      
         }
@@ -53,7 +54,7 @@ namespace ElectionAuthority
             this.server.stopServer();
         }
 
-        public void sendMessage(string name, string msg)
+        public void sendMessage(string name, string header, string msg)
         {
             TcpClient client = null;
             List<TcpClient> clientsList = clientSockets.Keys.ToList();
@@ -65,7 +66,10 @@ namespace ElectionAuthority
                     break;
                 }
             }
-            this.server.sendMessage(client, msg);
+            NetworkLib.JsonMessage request = new NetworkLib.JsonMessage(header, msg);
+            string json = JsonConvert.SerializeObject(request);
+
+            this.server.sendMessage(client, json);
         }
 
         private void updateClientName(TcpClient client, string signal)
