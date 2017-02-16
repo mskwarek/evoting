@@ -6,7 +6,7 @@ using System.Text;
 
 namespace NetworkLib
 {
-    public class MessageSLTokens
+    public class MessageSLTokens : Message
     {
         public String SL;
         public List<BigInteger> tokens;
@@ -18,5 +18,7 @@ namespace NetworkLib
             this.tokens = tokens;
             this.exponents = exponents;
         }
+
+        public override void Parse(object subject, string msg)
     }
 }
