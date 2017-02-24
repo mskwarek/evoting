@@ -42,12 +42,21 @@ namespace Proxy
             this.configuration = new Configuration();
             this.server = new Server(this);
             this.client = new Client(this);
+            this.client.OnNewSLMessageReceived += OnNewSLMessageReceived;
+
             this.serialNumberTokens = new Dictionary<BigInteger, List<List<BigInteger>>>();
             this.SRList = new List<BigInteger>();
             this.serialNumberAndSR = new Dictionary<BigInteger, BigInteger>();
             this.proxyBallots = new Dictionary<string, ProxyBallot>();
 
             this.tryToLoadConfig(configPath);
+        }
+
+        private void OnNewSLMessageReceived(List<NetworkLib.MessageSLTokens> list)
+        {
+            //this.SerialNumberTokens = list;
+            this.connectSRandSL();
+            this.client.sendMessage(NetworkLib.Constants.SL_RECEIVED_SUCCESSFULLY, "");
         }
 
         private void tryToLoadConfig(string configPath)
@@ -86,9 +95,9 @@ namespace Proxy
 
         private void requestSL()
         {
-            string msg = "REQUEST_SL&";
+            string msg = "REQUEST_SL";
 
-            this.client.sendMessage(msg);
+            this.client.sendMessage(msg, "");
         }
 
         public void startServer()
@@ -192,9 +201,9 @@ namespace Proxy
             string tokens = prepareTokens(this.proxyBallots[name].SL);
             string columns = prepareBlindProxyBallot(blindProxyBallot);
 
-            string msg = NetworkLib.Constants.BLIND_PROXY_BALLOT + "&" + name + ";"  + SL + ";" + tokens + columns ;
+            string msg = name + ";"  + SL + ";" + tokens + columns ;
 
-            this.client.sendMessage(msg);
+            this.client.sendMessage(NetworkLib.Constants.BLIND_PROXY_BALLOT, msg);
         }
 
         private string prepareBlindProxyBallot(BigInteger[] blindProxyBallot)
@@ -283,9 +292,9 @@ namespace Proxy
             unblinedColumns += strUnblindedBallotMatrix[strUnblindedBallotMatrix.Length - 1];
 
 
-            string message = NetworkLib.Constants.UNBLINED_BALLOT_MATRIX + "&" + name + ";" + unblinedColumns;
+            string message =  name + ";" + unblinedColumns;
 
-            this.client.sendMessage(message);
+            this.client.sendMessage(NetworkLib.Constants.UNBLINED_BALLOT_MATRIX, message);
         }
     }
 }

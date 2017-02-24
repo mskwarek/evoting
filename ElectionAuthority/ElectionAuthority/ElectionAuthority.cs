@@ -159,7 +159,9 @@ namespace ElectionAuthority
         {
             Ballot test = this.ballots.Values.First();
             NetworkLib.MessageSLTokens msg = new NetworkLib.MessageSLTokens(test.SL, test.TokenList, test.ExponentsList);
-            string data = JsonConvert.SerializeObject(msg);
+            List<NetworkLib.MessageSLTokens> list = new List<NetworkLib.MessageSLTokens>();
+            list.Add(msg);
+            string data = JsonConvert.SerializeObject(list);
 
 
             Utils.Logs.addLog("EA request json", data, true, NetworkLib.Constants.LOG_INFO, true);

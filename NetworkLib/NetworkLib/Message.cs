@@ -1,12 +1,23 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace NetworkLib
 {
-    public abstract class Message
+    public abstract class Message : IMessage
     {
-        public abstract void Parse(object subject, string msg);
+        string IMessage.Serialize<T>(T deserialized)
+        {
+            return JsonConvert.SerializeObject(deserialized);
+        }
+
+        T IMessage.Deserialize<T>(string serialized)
+        {
+            return JsonConvert.DeserializeObject<T>(serialized);
+        }
+
+        public abstract void Parse();
     }
 }

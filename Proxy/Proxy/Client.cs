@@ -16,6 +16,9 @@ namespace Proxy
         private NetworkLib.Client client;
         public NetworkLib.Client.NewMsgHandler newMessageHandler { get; set; }
 
+        public delegate void SLMessageReceived(List<MessageSLTokens> list);
+        public event SLMessageReceived OnNewSLMessageReceived;
+
         public Client(Proxy proxy)
         {
         }
@@ -39,42 +42,8 @@ namespace Proxy
 
         private void parseSLTokensDictionaryFromEA(string msg)
         {
-            Dictionary<BigInteger, List<List<BigInteger>>> dict = new Dictionary<BigInteger, List<List<BigInteger>>>();
-            MessageSLTokens msgData = JsonConvert.DeserializeObject<MessageSLTokens>(msg);
-
-
-            string[] dictionaryElem = msg.Split(';');
-            for (int i = 0; i < dictionaryElem.Length - 1; i++)
-            {
-                string[] words = dictionaryElem[i].Split('=');
-                BigInteger SL = new BigInteger(words[0]);
-                List<List<BigInteger>> mainList = new List<List<BigInteger>>();
-
-                string[] token = words[1].Split(':');
-
-                string[] tokenList = token[0].Split(',');
-                List<BigInteger> firstList = new List<BigInteger>();
-                foreach (string str in tokenList)
-                {
-                    firstList.Add(new BigInteger(str));
-                }
-                mainList.Add(firstList);
-
-                string[] exponentsList = token[1].Split(',');
-                List<BigInteger> secondList = new List<BigInteger>();
-                foreach (string str in exponentsList)
-                {
-                    secondList.Add(new BigInteger(str));
-                }
-                mainList.Add(secondList);
-
-                dict.Add(SL, mainList);
-            }
-
-            this.proxy.SerialNumberTokens = dict;
-            this.proxy.connectSRandSL();
-            this.sendMessage(NetworkLib.Constants.SL_RECEIVED_SUCCESSFULLY + "&");
-
+            List<MessageSLTokens> msgData = JsonConvert.DeserializeObject<List<MessageSLTokens>>(msg);
+            this.OnNewSLMessageReceived(msgData);            
         }
 
         private void displayMessageReceived(object myObject, MessageArgs myArgs)
@@ -93,7 +62,7 @@ namespace Proxy
                     Utils.Logs.addLog("Client", NetworkLib.Constants.PROXY_CONNECTED_TO_EA, true, NetworkLib.Constants.LOG_INFO, true);
                     break;
                 case NetworkLib.Constants.SIGNED_PROXY_BALLOT:
-                    this.proxy.saveSignedBallot(jsonmsg.data);
+                    //this.proxy.saveSignedBallot(jsonmsg.data);
                     break;
             }       
         }
@@ -103,9 +72,11 @@ namespace Proxy
             client.stopService();
         }
 
-        public void sendMessage(string msg)
+        public void sendMessage(string header, string msg)
         {
-            client.sendMessage(msg);
+            JsonMessage json = new JsonMessage(header, msg);
+            string message = JsonConvert.SerializeObject(json);
+            client.sendMessage(message);
         }
     }
 }

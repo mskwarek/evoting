@@ -53,6 +53,7 @@
     <Compile Include="ClientArgs.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="JsonMessage.cs" />
+    <Compile Include="IMessage.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MessageArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

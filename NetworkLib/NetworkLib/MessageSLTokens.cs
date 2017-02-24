@@ -1,4 +1,5 @@
-﻿using Org.BouncyCastle.Math;
+﻿using Newtonsoft.Json;
+using Org.BouncyCastle.Math;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,9 @@ namespace NetworkLib
             this.exponents = exponents;
         }
 
-        public override void Parse(object subject, string msg)
+        public override void Parse()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
