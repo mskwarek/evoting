@@ -27,13 +27,7 @@ namespace Proxy
         private List<BigInteger> SRList;
         private Dictionary<string, ProxyBallot> proxyBallots; 
         private int numberOfVoters;
-        private Dictionary<BigInteger, List<List<BigInteger>>> serialNumberTokens; 
-        public Dictionary<BigInteger, List<List<BigInteger>>> SerialNumberTokens
-        {
-            get { return this.serialNumberTokens; }
-            set { this.serialNumberTokens = value;}
-        }
-        private Dictionary<BigInteger, BigInteger> serialNumberAndSR;
+       
         private static int numOfSentSLandSR = 0;
         private List<string> yesNoPosition; 
 
@@ -44,9 +38,7 @@ namespace Proxy
             this.client = new Client(this);
             this.client.OnNewSLMessageReceived += OnNewSLMessageReceived;
 
-            this.serialNumberTokens = new Dictionary<BigInteger, List<List<BigInteger>>>();
             this.SRList = new List<BigInteger>();
-            this.serialNumberAndSR = new Dictionary<BigInteger, BigInteger>();
             this.proxyBallots = new Dictionary<string, ProxyBallot>();
 
             this.tryToLoadConfig(configPath);
@@ -54,7 +46,12 @@ namespace Proxy
 
         private void OnNewSLMessageReceived(List<NetworkLib.MessageSLTokens> list)
         {
-            //this.SerialNumberTokens = list;
+            foreach(var item in list)
+            {
+                ProxyBallot pb = new ProxyBallot(new BigInteger(item.SL), this.getNextSR());
+                pb.TokensList = item.tokens;
+                pb.ExponentsList = item.exponents;
+            }
             this.connectSRandSL();
             this.client.sendMessage(NetworkLib.Constants.SL_RECEIVED_SUCCESSFULLY, "");
         }
@@ -96,7 +93,6 @@ namespace Proxy
         private void requestSL()
         {
             string msg = "REQUEST_SL";
-
             this.client.sendMessage(msg, "");
         }
 
@@ -105,11 +101,21 @@ namespace Proxy
             this.Server.startServer(configuration.ProxyPort);
         }
 
-        public void generateSR()
+        private void generateSR()
         {
             this.numberOfVoters = this.configuration.NumOfVoters;
             this.SRList = SerialNumberGenerator.generateListOfSerialNumber(this.numberOfVoters, NetworkLib.Constants.NUMBER_OF_BITS_SR);
             Utils.Logs.addLog("Proxy", NetworkLib.Constants.SR_GEN_SUCCESSFULLY, true, NetworkLib.Constants.LOG_INFO);
+        }
+
+        private static int numberOfSRGet = 0;
+        private BigInteger getNextSR()
+        {
+            if(0 == numberOfSRGet)
+            {
+                this.generateSR();
+            }
+            return this.SRList[numberOfSRGet++];
         }
 
         public void generateYesNoPosition()
@@ -119,31 +125,17 @@ namespace Proxy
             Utils.Logs.addLog("Proxy", NetworkLib.Constants.YES_NO_POSITION_GEN_SUCCESSFULL, true, NetworkLib.Constants.LOG_INFO);
             saveYesNoPositionToFile();
             Utils.Logs.addLog("Proxy", NetworkLib.Constants.YES_NO_POSITION_SAVED_TO_FILE, true, NetworkLib.Constants.LOG_INFO);
-
         }
 
         public void connectSRandSL()
         {
-            for(int i=0; i<this.SRList.Count; i++)
-            {
-                this.serialNumberAndSR.Add(serialNumberTokens.ElementAt(i).Key, SRList[i]);
-            }
             Utils.Logs.addLog("Proxy", NetworkLib.Constants.SR_CONNECTED_WITH_SL, true, NetworkLib.Constants.LOG_INFO, true);
         }
 
         public void sendSLAndSR(string name)
         {
-            if (this.serialNumberAndSR != null && this.serialNumberAndSR.Count != 0)
+            if (this.proxyBallots != null)
             {
-                BigInteger SL = this.serialNumberAndSR.ElementAt(numOfSentSLandSR).Key;
-                BigInteger SR = this.serialNumberAndSR.ElementAt(numOfSentSLandSR).Value;
-                List<BigInteger> tokensList = this.serialNumberTokens[SL][0];
-                List<BigInteger> exponentesList = this.serialNumberTokens[SL][1];
-
-                this.proxyBallots.Add(name, new ProxyBallot(SL, SR));
-                this.proxyBallots[name].TokensList = tokensList;
-                this.proxyBallots[name].ExponentsList = exponentesList;
-
 
                 //there we will save YES-NO positions - previously it was saved when user send 
                 //a request but we chaged a idea of our app
@@ -151,7 +143,7 @@ namespace Proxy
                 this.proxyBallots[name].YesNoPos = position;
 
 
-                string msg = NetworkLib.Constants.SL_AND_SR + "&" + SL.ToString() + "=" + SR.ToString();
+                string msg = NetworkLib.Constants.SL_AND_SR + "&" + this.getAllSL().ToString() + "=" + this.getAllSR().ToString();
                 numOfSentSLandSR += 1;
                 this.server.sendMessage(name, msg);
             }
@@ -161,6 +153,47 @@ namespace Proxy
             }
             
 
+        }
+
+        private List<BigInteger> getAllSL()
+        {
+            return this.getProxyBallotSerialNumber(SerialNumberType.SL);
+        }
+
+        private List<BigInteger> getAllSR()
+        {
+            return this.getProxyBallotSerialNumber(SerialNumberType.SR);
+        }
+
+        enum SerialNumberType
+        {
+            SL,
+            SR
+        };
+        private List<BigInteger> getProxyBallotSerialNumber(SerialNumberType type)
+        {
+            List<BigInteger> toReturn = new List<BigInteger>();
+            foreach (var item in this.proxyBallots)
+            {
+                toReturn.Add(this.getSerialNumberFromProxyBallot(item.Value, type));
+            }
+            return toReturn;
+        }
+
+        private BigInteger getSerialNumberFromProxyBallot(ProxyBallot item, SerialNumberType type)
+        {
+            if(SerialNumberType.SL == type)
+            {
+                return item.SL;
+            }
+            else if(SerialNumberType.SR == type)
+            {
+                return item.SR;
+            }
+            else
+            {
+                return new BigInteger("0");
+            }
         }
 
         private void saveYesNoPositionToFile()
@@ -230,13 +263,24 @@ namespace Proxy
 
         private string prepareTokens(BigInteger SL)
         {
-            List<BigInteger> tokenList = this.serialNumberTokens[SL][0];
-            string tokens = listToMessage(tokenList);
-
-            List<BigInteger> exponentsList = this.serialNumberTokens[SL][1];
-            tokens += listToMessage(exponentsList);
+            ProxyBallot entry = this.searchProxyBallotBySL(SL);
+            string tokens = listToMessage(entry.TokensList);
+            tokens += listToMessage(entry.ExponentsList);
 
             return tokens;
+        }
+
+        private ProxyBallot searchProxyBallotBySL(BigInteger SL)
+        {
+            foreach(var item in this.proxyBallots)
+            {
+                if(item.Value.SL.Equals(SL))
+                {
+                    return item.Value;
+                }
+            }
+
+            return null;
         }
 
         public void saveSignedBallot(string message)

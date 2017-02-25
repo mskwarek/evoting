@@ -78,11 +78,7 @@ namespace Proxy
                 Utils.Logs.addLog("Proxy", NetworkLib.Constants.SERVER_UNABLE_TO_START, true, NetworkLib.Constants.LOG_ERROR, true);
             }
 
-
-            this.proxy.generateSR();
             this.proxy.generateYesNoPosition();
-
-
         }
 
         public void connectToEA()

@@ -26,6 +26,10 @@ namespace Proxy
             get { return sl; }
         }
         private BigInteger sr;
+        public BigInteger SR
+        {
+            get { return this.sr; }
+        }
         private string yesNoPos;                                          
         public string YesNoPos
         {
@@ -211,12 +215,6 @@ namespace Proxy
 
             //rewrite colums from ballot matrix to another array
             this.rewriteColumsToArray();
-        }
-
-        private void markNonClickedNoButton(int vote, string position, int[,] ballotMatrix)
-        {
-        //mark every non-clicked "No" button
-
         }
 
         private void rewriteColumsToArray()
