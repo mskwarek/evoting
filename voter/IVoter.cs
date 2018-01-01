@@ -4,6 +4,6 @@ namespace voter
 {
     public interface IVoter
     {
-        void readConfiguration(string path);
+        void readConfiguration(IFileHelper fileHelper, string path);
     }
 }

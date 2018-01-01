@@ -4,15 +4,13 @@ namespace voter
 {
     public class Voter : IVoter
     {
-        Configuration configuration;
-        public Voter(IFileHelper fileHelper)
-        {
-            configuration = new Configuration(fileHelper);
-        }   
+        public ConfigurationJson voterConfig { get; private set; }
+        public Voter()
+        { }   
 
-        public void readConfiguration(string path)
+        public void readConfiguration(IFileHelper fileHelper, string path)
         {
-            configuration.readConfiguration<ConfigurationJson>(path);
+            voterConfig = new Configuration(fileHelper).readConfiguration<ConfigurationJson>(path);
         }
 
     }

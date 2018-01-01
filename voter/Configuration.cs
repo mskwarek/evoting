@@ -21,7 +21,7 @@ namespace voter
     public class ConfigurationJson
     {
         public String eaIp;
-        public String port;
+        public String eaPort;
         public String proxyIp;
         public String proxyPort;
         public int numberOfCandidates;
