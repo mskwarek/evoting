@@ -9,9 +9,11 @@ namespace voterUnitTest
     public class VoterUnitTest
     {
         Mock<IFileHelper> fileHelper = new Mock<IFileHelper>();
-        Voter cut  = new Voter();
+        Mock<IClient> proxyTransportLayerMock = new Mock<IClient>();
+        Voter cut;
         public VoterUnitTest()
         {
+            cut = new Voter(proxyTransportLayerMock.Object);
             fileHelper.Setup(x=>x.DirectoryExists(It.IsAny<string>())).Returns(true);
         }
 

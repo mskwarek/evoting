@@ -5,12 +5,26 @@ namespace voter
     public class Voter : IVoter
     {
         public ConfigurationJson voterConfig { get; private set; }
-        public Voter()
-        { }   
+        private IClient proxyTransportLayer;
+        public Voter(IClient proxyTransportLayer)
+        {
+            this.proxyTransportLayer = proxyTransportLayer;
+            voterConfig = new ConfigurationJson();
+        }   
 
         public void readConfiguration(IFileHelper fileHelper, string path)
         {
             voterConfig = new Configuration(fileHelper).readConfiguration<ConfigurationJson>(path);
+        }
+
+        public void requestForSrAndSl()
+        {
+            this.proxyTransportLayer.sendMessage(buildSrAndSlReq());
+        }
+
+        private string buildSrAndSlReq()
+        {
+            return Common.Messages.Headers.SR_SL_HEADER_REQ + voterConfig.name;
         }
 
     }
