@@ -16,7 +16,7 @@ namespace Common
             var configPath = fileNameWithoutExtension;// + ConfigExtension;
             Console.WriteLine(configPath);
 
-            string content = fileHelper.ReadAllText(configPath);
+            var content = fileHelper.ReadAllText(configPath);
             return JsonConvert.DeserializeObject<T>(content);
         }    
     }

@@ -20,7 +20,7 @@ namespace voterUnitTest
         [Fact]
         public void ExceptionIsRaisedWhenPathPassedToReadConfigIsNotValid()
         {
-            string wrongPath = "blahblahblah";
+            var wrongPath = "blahblahblah";
             fileHelper.Setup(x=>x.ReadAllText(It.Is<string>(s => s.Equals(wrongPath)))).Throws(new FileNotFoundException());
 
             Assert.Throws<FileNotFoundException>(() => cut.readConfiguration(fileHelper.Object, wrongPath));
@@ -29,7 +29,7 @@ namespace voterUnitTest
         [Fact]
         public void FileIsLoadedWhenRightPathIsPassed()
         {
-            string rightPath = "rightPath";
+            var rightPath = "rightPath";
             fileHelper.Setup(x=>x.ReadAllText(It.Is<string>(s => s.Equals(rightPath)))).Returns("{}");
 
             cut.readConfiguration(fileHelper.Object, rightPath); 
@@ -38,8 +38,8 @@ namespace voterUnitTest
         [Fact]
         public void fileIsRightParsedFromProperJson()
         {
-            string jsonConfigPath = "json";
-            string properJson = "{ \"Id\" : 1, \"eaIp\" : \"127.0.0.1\", \"eaPort\" : \"5001\", \"proxyIp\" : \"127.0.0.1\", \"proxyPort\" : \"5002\", \"name\" : \"Voter1\"}";
+            var jsonConfigPath = "json";
+            var properJson = "{ \"Id\" : 1, \"eaIp\" : \"127.0.0.1\", \"eaPort\" : \"5001\", \"proxyIp\" : \"127.0.0.1\", \"proxyPort\" : \"5002\", \"name\" : \"Voter1\"}";
             fileHelper.Setup(x => x.ReadAllText(It.Is<string>(s => s.Equals(jsonConfigPath)))).Returns(properJson);
         
             cut.readConfiguration(fileHelper.Object, jsonConfigPath);
