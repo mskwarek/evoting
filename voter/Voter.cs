@@ -1,4 +1,5 @@
 using Common;
+using Newtonsoft.Json;
 
 namespace voter
 {
@@ -24,7 +25,10 @@ namespace voter
 
         private string buildSrAndSlReq()
         {
-            return Common.Messages.Headers.SR_SL_HEADER_REQ + voterConfig.name;
+            var request = new Common.Messages.SlSrReq();
+            request.senderName = this.voterConfig.name;
+            Common.Logger.log(JsonConvert.SerializeObject(request));
+            return JsonConvert.SerializeObject(request);
         }
 
     }
