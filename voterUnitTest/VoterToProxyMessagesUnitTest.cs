@@ -30,16 +30,15 @@ namespace voterUnitTest
         {
             var exampleName = "example";
             var configJson = "{ \"name\" : \""+exampleName+"\" }";
+            var expectedJson = "{\"HEADER\":\""+Common.Messages.Headers.SR_SL_HEADER_REQ+"\",\"senderName\":\""+exampleName+"\"}";
             Mock<IFileHelper> fileHelper = new Mock<IFileHelper>();
             fileHelper.Setup(x => x.ReadAllText(It.IsAny<string>())).Returns(configJson);
 
             voter.readConfiguration(fileHelper.Object, "someString");
             voter.requestForSrAndSl();
-            var request = new Common.Messages.SlSrReq();
-            request.senderName = exampleName;
 
             transportLayerMock.Verify(mock => mock.sendMessage(
-                    It.Is<string>(s => s.Equals(JsonConvert.SerializeObject(request)))), 
+                    It.Is<string>(s => s.Equals(expectedJson))), 
                 Times.Once());
         }
     }
