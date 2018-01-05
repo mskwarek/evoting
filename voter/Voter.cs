@@ -6,11 +6,15 @@ namespace voter
     public class Voter : IVoter
     {
         public ConfigurationJson voterConfig { get; private set; }
+        private VoterCrypto voterCrypto;
         private IClient proxyTransportLayer;
-        public Voter(IClient proxyTransportLayer)
+        private IClient electionAuthTransportLayer;
+        public Voter(IClient proxyTransportLayer, IClient electionAuthTransportLayer)
         {
             this.proxyTransportLayer = proxyTransportLayer;
+            this.electionAuthTransportLayer = electionAuthTransportLayer;
             voterConfig = new ConfigurationJson();
+            voterCrypto = new VoterCrypto();
         }   
 
         public void readConfiguration(IFileHelper fileHelper, string path)
@@ -18,7 +22,7 @@ namespace voter
             voterConfig = new Configuration(fileHelper).readConfiguration<ConfigurationJson>(path);
         }
 
-        public void requestForSrAndSl()
+        public void requestForSrAndSlFromProxy()
         {
             this.proxyTransportLayer.sendMessage(buildSrAndSlReq());
         }
@@ -27,7 +31,21 @@ namespace voter
         {
             var request = new Common.Messages.SlSrReq();
             request.senderName = this.voterConfig.name;
-            Common.Logger.log(JsonConvert.SerializeObject(request));
+
+            return JsonConvert.SerializeObject(request);
+        }
+
+        public void requestForCandidateListFromElectionAuth()
+        {
+            this.electionAuthTransportLayer.sendMessage(buildCandidateListReq());
+        }
+
+        private string buildCandidateListReq()
+        {
+            var request = new Common.Messages.CandidateListReq();
+            request.senderName = this.voterConfig.name;
+            request.slValue = this.voterCrypto.SL.ToString();
+
             return JsonConvert.SerializeObject(request);
         }
 

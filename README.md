@@ -14,3 +14,6 @@ Uses:
 
 -network communication
 
+Dependencies:
+*xunit
+*bouncyCastle
