@@ -5,7 +5,7 @@ namespace Common.Messages
 {
     public class CandidateListResp
     {
-        string HEDER;
+        string HEADER = Headers.CANDIDATE_LIST_HEADER_RESP;
         string senderName;
         List<string> candidateList;
     }
