@@ -5,7 +5,7 @@ namespace Common
 {
     public abstract class State
     {
-        public void handleMessage(IMessage message)
+        virtual public void handleMessage(IMessage message)
         {
             Common.Logger.log(String.Format("Unknown message received in this state {0}", message.getHeader()));
         }
