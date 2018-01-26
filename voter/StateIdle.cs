@@ -11,7 +11,7 @@ namespace voter
 
         override public void handleMessage(IMessage message)
         {
-
+            Common.Logger.log(message.getPayload());
         }
     }
 }
