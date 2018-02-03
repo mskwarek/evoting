@@ -12,9 +12,7 @@ namespace Common
         private TcpClient client = new TcpClient();
         private NetworkStream stream;
         private Thread clientThread;
-
-        public delegate void NewMsgHandler(object myObject, MessageArgs myArgs);
-        public event NewMsgHandler OnNewMessageReceived;
+        public event NewMessageHandler OnNewMessageReceived;
 
         public bool Connected
         {
@@ -73,7 +71,7 @@ namespace Common
                 string signal = new ASCIIEncoding().GetString(message, 0, bytesRead);
                 Console.WriteLine(message);
                 MessageArgs myArgs = new MessageArgs(signal);
-                OnNewMessageReceived(this, myArgs);
+                OnNewMessageReceived(myArgs);
             }
             disconnect();
         }
@@ -100,6 +98,10 @@ namespace Common
                 stream.Write(buffer, 0, buffer.Length);
                 stream.Flush();
             }
+        }
+        public void subscribe(NewMessageHandler handler)
+        {
+            OnNewMessageReceived+=handler;
         }
     }
 }
